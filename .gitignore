@@ -1,0 +1,15 @@
+*.class
+*.nxj
+*.nxd
+*.iml
+.idea/
+.settings/
+GeneratedMessages/orwell/com/Version1.java
+proxy-robots-module/src/main/java/orwell/messages/
+.classpath
+.project
+orwell/proxy/test/report/
+logs/
+build/
+target/
+proxy-robots-module/src/main/resources/config.xml

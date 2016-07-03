@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>orwell</groupId>
+    <artifactId>robots-ev3</artifactId>
+    <version>0.1.0</version>
+
+    <properties>
+        <debug>false</debug>
+        <brick.host>192.168.0.17</brick.host>
+        <brick.home>/home/root</brick.home>
+        <brick.user>root</brick.user>
+        <brick.debug.port>4000</brick.debug.port>
+        <project.main.class>robot.RemoteRobot</project.main.class>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>lejos.ev3</groupId>
+            <artifactId>ev3classes</artifactId>
+            <version>0.9.1-beta</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.21</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.2.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zeromq</groupId>
+            <artifactId>jeromq</artifactId>
+            <version>0.3.5</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${project.main.class}</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <inherited>false</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Push to server ${project.build.directory}/${project.build.finalName}*.jar"></echo>
+                                <scp trust="yes" username="${brick.user}" password="" todir="root@${brick.host}:${brick.home}">
+                                    <fileset dir="${project.build.directory}">
+                                        <include name="${project.build.finalName}*.jar">
+                                        </include></fileset>
+                                </scp>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-cli</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- SSH -->
+                                <taskdef name="sshexec" classname="org.apache.tools.ant.taskdefs.optional.ssh.SSHExec" classpathref="maven.plugin.classpath"/>
+                                <taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="maven.plugin.classpath"/>
+                                <!-- run the jar -->
+                                <if>
+                                    <equals arg1="${debug}" arg2="true"/>
+                                    <then>
+                                        <sshexec host="${brick.host}" trust="yes" username="${brick.user}" password="" command="jrun -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${brick.debug.port},suspend=y -cp ${brick.home}/${project.build.finalName}-jar-with-dependencies.jar ${project.main.class}">
+                                        </sshexec>
+                                    </then>
+                                    <else>
+                                        <sshexec host="${brick.host}" trust="yes" username="${brick.user}" password="" command="jrun -cp ${brick.home}/${project.build.finalName}-jar-with-dependencies.jar ${project.main.class}">
+                                        </sshexec></else>
+                                </if>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>commons-net</groupId>
+                        <artifactId>commons-net</artifactId>
+                        <version>1.4.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>ant</groupId>
+                        <artifactId>ant-commons-net</artifactId>
+                        <version>1.6.5</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>ant</groupId>
+                        <artifactId>ant-jsch</artifactId>
+                        <version>1.6.5</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>jsch</groupId>
+                        <artifactId>jsch</artifactId>
+                        <version>0.1.29</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>ant-contrib</groupId>
+                        <artifactId>ant-contrib</artifactId>
+                        <version>20020829</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <executions>
+                    <execution>
+                        <id>install-jar-lib-ev3classes</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>lejos.ev3</groupId>
+                            <artifactId>ev3classes</artifactId>
+                            <version>0.9.1-beta</version>
+                            <packaging>jar</packaging>
+                            <file>${EV3_HOME}/lib/ev3/ev3classes.jar</file>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
