@@ -1,4 +1,4 @@
-package robot;
+package orwell.tank.messaging;
 
 /**
  * Created by Michaël Ludmann on 03/07/16.

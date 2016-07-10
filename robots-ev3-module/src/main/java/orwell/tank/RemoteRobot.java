@@ -1,6 +1,5 @@
-package robot;
+package orwell.tank;
 
-import communication.RobotMessageBroker;
 import lejos.hardware.Button;
 import lejos.hardware.Key;
 import lejos.hardware.KeyListener;
@@ -12,6 +11,8 @@ import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.hardware.sensor.RFIDSensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import orwell.tank.communication.RobotMessageBroker;
+import orwell.tank.messaging.EnumConnectionState;
 
 import java.io.IOException;
 
@@ -25,6 +26,7 @@ public class RemoteRobot extends Thread {
     private static RemoteRobot remoteRobot;
     private final RobotMessageBroker robotMessageBroker;
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
+    private int flag = 1;
 
     public RemoteRobot(String serverIpAddress, int pushPort, int pullPort) {
         robotMessageBroker = new RobotMessageBroker(serverIpAddress, pushPort, pullPort);
@@ -33,7 +35,6 @@ public class RemoteRobot extends Thread {
     }
 
     public static void main(String[] args) throws IOException {
-
         remoteRobot = new RemoteRobot("192.168.0.18", 10001, 10000);
         remoteRobot.start();
 
@@ -55,7 +56,7 @@ public class RemoteRobot extends Thread {
         return getConnectionState();
     }
 
-    public void robotAction(EnumCommand command) {
+//    public void robotAction(EnumCommand command) {
 //        switch (command) {
 //            case LocalClient.BACKWARD:
 //                C.backward();
@@ -74,7 +75,7 @@ public class RemoteRobot extends Thread {
 //                D.rotateTo(-10);
 //                break;
 //        }
-    }
+//    }
 
     public void run() {
         System.out.println("CLIENT CONNECT");
@@ -90,13 +91,32 @@ public class RemoteRobot extends Thread {
         } catch (Exception e) {
             logback.error("Exception during RemoteRobot run: " + e.getMessage());
         }
+        C.stop();
+        D.stop();
         remoteRobot.disconnect();
         Thread.yield();
     }
 
     private void waitForNewMessage() {
         String msg = robotMessageBroker.receiveNewMessage();
+
         Sound.beep();
+
+        if(flag == 1) {
+            C.forward();
+            D.backward();
+            flag++;
+        }
+        if(flag == 2){
+            C.backward();
+            D.forward();
+            flag++;
+        }
+        if(flag == 3){
+            C.stop();
+            D.stop();
+            flag = 1;
+        }
     }
 
     private boolean isRobotRunning() {
