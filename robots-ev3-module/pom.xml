@@ -6,7 +6,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <debug>false</debug>
-        <brick.host>192.168.0.17</brick.host>
+        <brick.host>192.168.2.203</brick.host>
         <brick.home>/home/root</brick.home>
         <brick.user>root</brick.user>
         <brick.debug.port>4000</brick.debug.port>

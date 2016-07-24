@@ -1,6 +1,6 @@
 package orwell.tank.messaging;
 
-import lejos.mf.common.SimpleUnitMessage;
+import lejos.mf.common.UnitMessage;
 import lejos.mf.common.UnitMessageType;
 import orwell.tank.actions.*;
 import utils.Splice;
@@ -11,10 +11,10 @@ import java.util.List;
 /**
  * Created by Michaël Ludmann on 10/07/16.
  */
-public class SimpleMessageDecoderFactory {
+public class UnitMessageDecoderFactory {
     private static final char UNIT_MESSAGE_SEPARATOR = ';';
 
-    public static IInputAction parseFrom(SimpleUnitMessage msg) {
+    public static IInputAction parseFrom(UnitMessage msg) {
         if (UnitMessageType.Command != msg.getMessageType())
             return null;
         List<String> payloadArray = Split.split(UNIT_MESSAGE_SEPARATOR, msg.getPayload());

@@ -12,10 +12,10 @@ public class RobotMessageBroker {
 
     private final int pushPort;
     private final int pullPort;
+    private final String proxyIpAddress;
     private ZMQ.Context context;
     private ZMQ.Socket sender;
     private ZMQ.Socket receiver;
-    private final String proxyIpAddress;
     private String senderConnectAddress;
     private String receiverConnectAddress;
 
@@ -61,11 +61,14 @@ public class RobotMessageBroker {
         sender.close();
         receiver.close();
         context.close();
+        logback.info("Robot is now disconnected from proxy");
     }
 
-    public String receiveNewMessage() {
-        String msg = receiver.recvStr(0);
-        logback.debug("Message received: " + msg);
+    public String receivedNewMessage() {
+        String msg = receiver.recvStr(1); // do not block thread waiting for a message
+        if (msg != null) {
+            logback.debug("Message received: " + msg);
+        }
         return msg;
     }
 }

@@ -9,6 +9,7 @@ import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.hardware.sensor.RFIDSensor;
+import lejos.internal.ev3.EV3LED;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import orwell.tank.communication.RobotMessageBroker;
@@ -27,15 +28,19 @@ public class RemoteRobot extends Thread {
     private final RobotMessageBroker robotMessageBroker;
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
     private int flag = 1;
+    private boolean isListening = false;
+    private EV3LED led;
 
     public RemoteRobot(String serverIpAddress, int pushPort, int pullPort) {
+        led = new EV3LED();
         robotMessageBroker = new RobotMessageBroker(serverIpAddress, pushPort, pullPort);
         Sound.setVolume(50);
+        Sound.twoBeeps();
         Button.ESCAPE.addKeyListener(new EscapeListener());
     }
 
     public static void main(String[] args) throws IOException {
-        remoteRobot = new RemoteRobot("192.168.0.18", 10001, 10000);
+        remoteRobot = new RemoteRobot("192.168.2.123", 10001, 10000);
         remoteRobot.start();
 
     }
@@ -80,46 +85,70 @@ public class RemoteRobot extends Thread {
     public void run() {
         System.out.println("CLIENT CONNECT");
         remoteRobot.connect();
-        try {
-
-
-            while (isRobotRunning()) {
-                remoteRobot.waitForNewMessage();
-            }
-
-
-        } catch (Exception e) {
-            logback.error("Exception during RemoteRobot run: " + e.getMessage());
-        }
-        C.stop();
-        D.stop();
-        remoteRobot.disconnect();
+        startReceivingMessagesLoop();
+        stopRobotAndDisconnect();
         Thread.yield();
     }
 
-    private void waitForNewMessage() {
-        String msg = robotMessageBroker.receiveNewMessage();
+    private void startReceivingMessagesLoop() {
+        try {
+            isListening = true;
+            led.setPattern(EV3LED.COLOR_GREEN, EV3LED.PATTERN_HEARTBEAT);
 
-        Sound.beep();
-
-        if(flag == 1) {
-            C.forward();
-            D.backward();
-            flag++;
-        }
-        if(flag == 2){
-            C.backward();
-            D.forward();
-            flag++;
-        }
-        if(flag == 3){
-            C.stop();
-            D.stop();
-            flag = 1;
+            while (isRobotListeningAndConnected()) {
+                remoteRobot.listenForNewMessage();
+                Thread.sleep(1);
+            }
+            isListening = false;
+        } catch (Exception e) {
+            logback.error("Exception during RemoteRobot run: " + e.getMessage());
         }
     }
 
-    private boolean isRobotRunning() {
+    private void stopRobotAndDisconnect() {
+        stopMotors();
+        led.setPattern(EV3LED.COLOR_NONE);
+        remoteRobot.disconnect();
+        logback.info("Robot is stopped and disconnected");
+    }
+
+    private void stopMotors() {
+        C.stop(true);
+        D.stop(true);
+    }
+
+    private void listenForNewMessage() {
+        String msg = robotMessageBroker.receivedNewMessage();
+
+        if (msg == null) {
+            return;
+        }
+
+        Sound.beep();
+
+        if (flag == 1) {
+            logback.debug("flag = 1");
+            C.forward();
+            D.backward();
+        }
+        if (flag == 2) {
+            logback.debug("flag = 2");
+            C.backward();
+            D.forward();
+        }
+        if (flag == 3) {
+            logback.debug("flag = 3");
+            stopMotors();
+            flag = 0;
+        }
+        flag++;
+    }
+
+    private boolean isRobotListeningAndConnected() {
+        return isListening && isConnected();
+    }
+
+    private boolean isConnected() {
         return remoteRobot.getConnectionState() == EnumConnectionState.CONNECTED;
     }
 
@@ -134,10 +163,11 @@ public class RemoteRobot extends Thread {
     private class EscapeListener implements KeyListener {
 
         public void keyPressed(Key k) {
-            remoteRobot.disconnect();
+            isListening = false;
         }
 
         public void keyReleased(Key k) {
+            isListening = false;
         }
     }
 }
