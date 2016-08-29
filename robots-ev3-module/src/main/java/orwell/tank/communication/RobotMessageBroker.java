@@ -1,5 +1,8 @@
 package orwell.tank.communication;
 
+import lejos.mf.common.UnitMessage;
+import lejos.mf.common.UnitMessageBuilder;
+import lejos.mf.common.exception.UnitMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
@@ -64,11 +67,16 @@ public class RobotMessageBroker {
         logback.info("Robot is now disconnected from proxy");
     }
 
-    public String receivedNewMessage() {
+    public UnitMessage receivedNewMessage() throws UnitMessageException {
         String msg = receiver.recvStr(1); // do not block thread waiting for a message
         if (msg != null) {
             logback.debug("Message received: " + msg);
         }
-        return msg;
+        return UnitMessageBuilder.build(msg);
+    }
+
+    public void sendMessage(UnitMessage message) {
+        logback.debug("Sending" + message.getMessageType() + " message to proxy");
+        sender.send(message.toString());
     }
 }

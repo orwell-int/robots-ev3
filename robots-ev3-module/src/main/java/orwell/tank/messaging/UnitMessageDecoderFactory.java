@@ -2,6 +2,8 @@ package orwell.tank.messaging;
 
 import lejos.mf.common.UnitMessage;
 import lejos.mf.common.UnitMessageType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import orwell.tank.actions.*;
 import utils.Splice;
 import utils.Split;
@@ -12,21 +14,25 @@ import java.util.List;
  * Created by Michaël Ludmann on 10/07/16.
  */
 public class UnitMessageDecoderFactory {
-    private static final char UNIT_MESSAGE_SEPARATOR = ';';
+    private final static Logger logback = LoggerFactory.getLogger(UnitMessageDecoderFactory.class);
 
-    public static IInputAction parseFrom(UnitMessage msg) {
-        if (UnitMessageType.Command != msg.getMessageType())
-            return null;
-        List<String> payloadArray = Split.split(UNIT_MESSAGE_SEPARATOR, msg.getPayload());
+    public static IInputAction parseFrom(UnitMessage message) {
+        if (isNotHandled(message)) {
+            return new NotHandled(null);
+        }
 
-        if (0 == payloadArray.size())
+        List<String> payloadArray = Split.split(' ', message.getPayload());
+        if (payloadArray.isEmpty())
             return null;
         String payloadHeader = payloadArray.get(0);
         List<String> payloadBody;
-        if (1 == payloadArray.size())
+
+        if (1 == payloadArray.size()) {
             payloadBody = null;
-        else
+        } else {
             payloadBody = Splice.subList(payloadArray, 1, payloadArray.size());
+        }
+
         switch (payloadHeader) {
             case "stop":
                 return new StopTank(payloadBody);
@@ -41,5 +47,9 @@ public class UnitMessageDecoderFactory {
             default:
                 return new NotHandled(payloadBody);
         }
+    }
+
+    private static boolean isNotHandled(UnitMessage message) {
+        return message == null || UnitMessageType.Command != message.getMessageType();
     }
 }
