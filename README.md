@@ -36,20 +36,25 @@ sudo apt-get install maven
 
 Download leJOS tar.gz
 ```
-wget -nc --no-check-certificate http://sourceforge.net/projects/lejos/files/lejos-NXJ/0.9.1beta/leJOS_NXJ_0.9.1beta-3.tar.gz/download -O ./leJOS_NXJ_0.9.1beta-3.tar.gz
-tar -xvf leJOS_NXJ_0.9.1beta-3.tar.gz
-export NXJ_HOME=leJOS_NXJ_0.9.1beta-3
+wget -nc --no-check-certificate http://sourceforge.net/projects/ev3.lejos.p/files/0.9.1-beta/leJOS_EV3_0.9.1-beta.tar.gz/download -O ./leJOS_EV3_0.9.1-beta.tar.gz
+tar -xvf leJOS_EV3_0.9.1-beta.tar.gz
+export EV3_HOME=leJOS_EV3_0.9.1-beta
 ```
 
 TEMPORARY DIRTY HACK to configure your setup
 ```
 Provide your Proxy-Robots IP in the RemoteRobot.java class
-Provide the IP of your robot in the robots-ev3-module/pom.xml 
+Provide the IP of your robot in the robots-ev3-module/pom.xml
+
+Connect RFID to S1
+Connect NXT US sensor to S4 (or disable it un RemoteRobot.java)
+Connect left motor to C port
+Connect right motor to D port
 ```
 
 Run maven for install (download code on robot) and run code on robot
 ```
-mvn package ???
+mvn validate -q
 mvn install antrun:run
 ```
 
