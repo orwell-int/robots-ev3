@@ -1,5 +1,11 @@
-after_success: 
+sudo: false
+after_success:
 - mvn clean cobertura:cobertura coveralls:report -q
+script: 
+before_install: 
+- git submodule update --init --recursive
+- wget -nc --no-check-certificate http://sourceforge.net/projects/ev3.lejos.p/files/0.9.1-beta/leJOS_EV3_0.9.1-beta.tar.gz/download -O ./leJOS_EV3_0.9.1-beta.tar.gz
+- tar -xvf leJOS_EV3_0.9.1-beta.tar.gz
 language: java
 notifications: 
   recipients: 
@@ -12,6 +18,8 @@ notifications:
   email: 
     on_success: change
     on_failure: always
+env: 
+- EV3_HOME=$TRAVIS_BUILD_DIR/leJOS_EV3_0.9.1-beta 
 install: 
 - mvn validate -q
 - mvn clean test

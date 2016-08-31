@@ -119,7 +119,7 @@ public class RemoteRobot extends Thread {
 
             while (isRobotListeningAndConnected()) {
                 remoteRobot.listenForNewMessage();
-                Thread.sleep(1);
+                Thread.sleep(10);
             }
             isListening = false;
         } catch (Exception e) {
