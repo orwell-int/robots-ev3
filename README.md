@@ -54,7 +54,7 @@ Connect right motor to D port
 
 Run maven for install (download code on robot) and run code on robot
 ```
-mvn package ???
+mvn validate -q
 mvn install antrun:run
 ```
 
