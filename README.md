@@ -36,9 +36,9 @@ sudo apt-get install maven
 
 Download leJOS tar.gz
 ```
-wget -nc --no-check-certificate http://sourceforge.net/projects/lejos/files/lejos-EV3/0.9.0-beta/leJOS_EV3_0.9.0-beta.tar.gz/download -O ./leJOS_EV3_0.9.0-beta.tar.gz
-tar -xvf leJOS_EV3_0.9.0-beta.tar.gz
-export EV3_HOME=leJOS_EV3_0.9.0-beta
+wget -nc --no-check-certificate http://sourceforge.net/projects/ev3.lejos.p/files/0.9.1-beta/leJOS_EV3_0.9.1-beta.tar.gz/download -O ./leJOS_EV3_0.9.1-beta.tar.gz
+tar -xvf leJOS_EV3_0.9.1-beta.tar.gz
+export EV3_HOME=leJOS_EV3_0.9.1-beta
 ```
 
 TEMPORARY DIRTY HACK to configure your setup
