@@ -72,11 +72,12 @@ public class RobotMessageBroker {
         if (msg != null) {
             logback.debug("Message received: " + msg);
         }
+
         return UnitMessageBuilder.build(msg);
     }
 
     public void sendMessage(UnitMessage message) {
-        logback.debug("Sending" + message.getMessageType() + " message to proxy");
+        logback.debug("Sending " + message.getMessageType() + " message to proxy");
         sender.send(message.toString());
     }
 }

@@ -1,13 +1,19 @@
 package orwell.tank.hardware;
 
+import lejos.mf.common.UnitMessageType;
+
 /**
  * Created by Michaël Ludmann on 6/17/15.
  */
-public interface ISensor {
+public interface ISensor<T> {
 
-    void addSensorListener(ISensorListener sensorListener);
+    T get();
 
-    void startListen();
+    void readValue();
 
-    void stopListen();
+    long getReadValueInterval();
+
+    void close();
+
+    UnitMessageType getType();
 }

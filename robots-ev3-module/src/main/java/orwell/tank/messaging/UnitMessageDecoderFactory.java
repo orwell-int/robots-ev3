@@ -23,7 +23,7 @@ public class UnitMessageDecoderFactory {
 
         List<String> payloadArray = Split.split(' ', message.getPayload());
         if (payloadArray.isEmpty())
-            return null;
+            return new NotHandled(null);
         String payloadHeader = payloadArray.get(0);
         List<String> payloadBody;
 

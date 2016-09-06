@@ -14,9 +14,8 @@ import org.slf4j.LoggerFactory;
 import orwell.tank.actions.IInputAction;
 import orwell.tank.actions.StopTank;
 import orwell.tank.communication.RobotMessageBroker;
-import orwell.tank.hardware.ISensor;
 import orwell.tank.hardware.RfidFlagSensor;
-import orwell.tank.hardware.SensorsListener;
+import orwell.tank.hardware.ThreadedSensor;
 import orwell.tank.hardware.Tracks;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
@@ -27,16 +26,25 @@ import java.util.ArrayList;
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
     private final static String IP_PROXY = "192.168.0.16";
-    private static RfidFlagSensor rfidSensor;
+    private static final int PUSH_PORT = 10001;
+    private static final int PULL_PORT = 10000;
+    private static final Port LEFT_TRACK_PORT = MotorPort.C;
+    private static final Port RIGHT_TRACK_PORT = MotorPort.D;
+    private static final Port RFID_PORT = SensorPort.S1;
+    private static final Port US_PORT = SensorPort.S4;
+    private static final int VOLUME_PERCENT = 10;
+    private static final long SENSOR_MESSAGE_DELAY = 50;
     private static NXTUltrasonicSensor usSensor;
     private static RemoteRobot remoteRobot;
     private final RobotMessageBroker robotMessageBroker;
-    private SensorsListener sensorsListener;
+    private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
+    private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
     private boolean isListening = false;
     private EV3LED led;
     private Tracks tracks;
     private boolean ready = false;
+    private long lastSensorMessageTime = System.currentTimeMillis();
 
     public RemoteRobot(String serverIpAddress, int pushPort, int pullPort) {
         robotMessageBroker = new RobotMessageBroker(serverIpAddress, pushPort, pullPort);
@@ -46,7 +54,7 @@ public class RemoteRobot extends Thread {
     }
 
     public static void main(String[] args) throws IOException {
-        remoteRobot = new RemoteRobot(IP_PROXY, 10001, 10000);
+        remoteRobot = new RemoteRobot(IP_PROXY, PUSH_PORT, PULL_PORT);
         if (remoteRobot.isReady()) {
             remoteRobot.start();
         }
@@ -54,14 +62,12 @@ public class RemoteRobot extends Thread {
 
     private void initHardware() {
         led = new EV3LED();
-        Sound.setVolume(50);
-        sensorsListener = new SensorsListener(robotMessageBroker);
+        Sound.setVolume(VOLUME_PERCENT);
         try {
-            initTracks(MotorPort.C, MotorPort.D);
-            initRfid(SensorPort.S1);
-            initUs(SensorPort.S4);
+            initTracks(LEFT_TRACK_PORT, RIGHT_TRACK_PORT);
+            initRfid(RFID_PORT);
+            initUs(US_PORT);
 
-            initSensorListener();
             ready = true;
         } catch (DeviceException e) {
             logback.error(e.getMessage());
@@ -77,20 +83,15 @@ public class RemoteRobot extends Thread {
     private void initRfid(Port port) {
         I2CPort i2cPort = port.open(I2CPort.class);
         i2cPort.setType(I2CPort.TYPE_LOWSPEED_9V);
-        rfidSensor = new RfidFlagSensor(i2cPort);
+        ThreadedSensor<Long> rfidThreadedSensor = new ThreadedSensor<>(new RfidFlagSensor(i2cPort));
+        threadedSensorList.add(rfidThreadedSensor);
+        rfidThreadedSensor.start();
         logback.info("Rfid init Ok");
     }
 
     private void initUs(Port usPort) {
         usSensor = new NXTUltrasonicSensor(usPort);
         logback.info("US init Ok");
-    }
-
-    private void initSensorListener() {
-        ArrayList<ISensor> sensors = new ArrayList<>();
-        sensors.add(rfidSensor);
-        sensorsListener.add(sensors);
-        sensorsListener.startListenToSensors();
     }
 
     public void run() {
@@ -119,12 +120,41 @@ public class RemoteRobot extends Thread {
 
             while (isRobotListeningAndConnected()) {
                 remoteRobot.listenForNewMessage();
+                remoteRobot.sendMessageOnSensorUpdate();
                 Thread.sleep(10);
             }
             isListening = false;
         } catch (Exception e) {
             logback.error("Exception during RemoteRobot run: " + e.getMessage());
         }
+    }
+
+    private void sendMessageOnSensorUpdate() {
+        if (!shouldTrySendSensorMessage()) {
+            return;
+        }
+        checkSensorUpdate();
+        sendSensorMessage();
+    }
+
+    private boolean shouldTrySendSensorMessage() {
+        return lastSensorMessageTime + SENSOR_MESSAGE_DELAY <= System.currentTimeMillis();
+    }
+
+    private void checkSensorUpdate() {
+        for (ThreadedSensor sensor : threadedSensorList) {
+            if (sensor.hasUpdate()) {
+                sensorsMessages.add(new UnitMessage(sensor.getType(), sensor.get().toString()));
+            }
+        }
+    }
+
+    private void sendSensorMessage() {
+        for (UnitMessage message : sensorsMessages) {
+            robotMessageBroker.sendMessage(message);
+        }
+        sensorsMessages.clear();
+        lastSensorMessageTime = System.currentTimeMillis();
     }
 
     private boolean isRobotListeningAndConnected() {
@@ -153,7 +183,7 @@ public class RemoteRobot extends Thread {
         }
     }
 
-    public void dispose() {
+    private void dispose() {
         Sound.buzz();
         stopRobotAndDisconnect();
         closeHardware();
@@ -163,7 +193,6 @@ public class RemoteRobot extends Thread {
     public void stopRobotAndDisconnect() {
         stopTank();
         led.setPattern(EV3LED.COLOR_NONE);
-        sensorsListener.stopListenToSensors();
         disconnect();
         logback.info("Robot is stopped and " + getConnectionState());
     }
@@ -193,8 +222,9 @@ public class RemoteRobot extends Thread {
     private void closeHardware() {
         if (tracks != null)
             tracks.close();
-        if (rfidSensor != null)
-            rfidSensor.close();
+        for (ThreadedSensor sensor : threadedSensorList) {
+            sensor.close();
+        }
         if (usSensor != null)
             usSensor.close();
     }
