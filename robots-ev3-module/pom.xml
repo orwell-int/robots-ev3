@@ -63,6 +63,11 @@
             <artifactId>common</artifactId>
             <version>0.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.ini4j</groupId>
+            <artifactId>ini4j</artifactId>
+            <version>0.5.4</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

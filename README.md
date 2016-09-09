@@ -72,6 +72,5 @@ mvn clean cobertura:cobertura coveralls:report
 
 You can also run the jar created by the install to start the application from the command line on the robot itself (by ssh)
 ```
-Check in the pom file the actual command to launch on the robot itself
+jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot
 ```
-
