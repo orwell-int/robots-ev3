@@ -16,10 +16,6 @@ Get the submodules
 git submodule update --init --recursive
 ```
 
-local setup for coveralls
--------------------------
-Run with maven
---------------
 Prerequiste: have jdk-7+ installed on your machine
 ```
 javac -version
@@ -29,7 +25,9 @@ java -version
 >java version "1.7.xxx"
 ```
 
-Install maven:
+Run with maven
+--------------
+Install maven
 ```
 sudo apt-get install maven
 ```
@@ -45,7 +43,12 @@ Configure your hardware setup
 ```
 Copy the robots-ev3-module/src/main/resources/tank.defaults.ini to tank.config.ini
 Edit it so as to reflect your own hardware and proxy configuration
-Copy it in ${brick.home} (should be /home/root if you did not edit the pom.xml)
+Copy it on your EV3 in ${brick.home} (should be /home/root if you did not edit the pom.xml)
+```
+
+Edit robots-ev3-module/pom.xml
+```
+Change the value of <brick.host>YOUR_EV3_IP_HERE</brick.host>
 ```
 
 Run maven for install (upload code on robot) and run code on robot
@@ -54,6 +57,8 @@ mvn validate -q
 mvn install antrun:run
 ```
 
+Run without maven, once you have the jar
+----------------------------------------
 You can also run the jar created by the install to start the application from the command line on the robot itself (through ssh)
 Provided you already copied the tank.config.ini and the jar on the target
 ```
