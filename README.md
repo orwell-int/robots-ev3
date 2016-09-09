@@ -41,36 +41,21 @@ tar -xvf leJOS_EV3_0.9.1-beta.tar.gz
 export EV3_HOME=leJOS_EV3_0.9.1-beta
 ```
 
-TEMPORARY DIRTY HACK to configure your setup
+Configure your hardware setup
 ```
-Provide your Proxy-Robots IP in the RemoteRobot.java class
-Provide the IP of your robot in the robots-ev3-module/pom.xml
-
-Connect RFID to S1
-Connect NXT US sensor to S4 (or disable it un RemoteRobot.java)
-Connect left motor to C port
-Connect right motor to D port
+Copy the robots-ev3-module/src/main/resources/tank.defaults.ini to tank.config.ini
+Edit it so as to reflect your own hardware and proxy configuration
+Copy it in ${brick.home} (should be /home/root if you did not edit the pom.xml)
 ```
 
-Run maven for install (download code on robot) and run code on robot
+Run maven for install (upload code on robot) and run code on robot
 ```
 mvn validate -q
 mvn install antrun:run
 ```
 
-To update the coveralls status, export your repo token in the following environment variable:
-(You will find it on https://coveralls.io/r/orwell-int/robots-ev3)
+You can also run the jar created by the install to start the application from the command line on the robot itself (through ssh)
+Provided you already copied the tank.config.ini and the jar on the target
 ```
-export COVERALLS_REPO_TOKEN=yourToken
-```
-
-To update the coveralls status, export your repo token in the following environment variable:
-(You will find it on https://coveralls.io/r/orwell-int/robots-ev3)
-```
-mvn clean cobertura:cobertura coveralls:report
-```
-
-You can also run the jar created by the install to start the application from the command line on the robot itself (by ssh)
-```
-jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot
+jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot -f tank.config.ini
 ```
