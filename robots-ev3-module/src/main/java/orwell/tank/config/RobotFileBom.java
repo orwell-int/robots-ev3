@@ -7,17 +7,17 @@ import lejos.hardware.port.Port;
  */
 public class RobotFileBom {
 
-    private Port leftMortPort;
-    private Port rightMotorPort;
-    private boolean isLeftMotorInverted;
-    private boolean isRightMotorInverted;
-    private Port rfidSensorPort;
-    private Port usSensorPort;
-    private int proxyPushPort;
-    private int proxyPullPort;
-    private String proxyIp;
-    private int sensorMessageDelay;
-    private int volume;
+    private Port leftMortPort = null;
+    private Port rightMotorPort = null;
+    private boolean isLeftMotorInverted = false;
+    private boolean isRightMotorInverted = false;
+    private Port rfidSensorPort = null;
+    private Port usSensorPort = null;
+    private int proxyPushPort = -1;
+    private int proxyPullPort = -1;
+    private String proxyIp = null;
+    private int sensorMessageDelayMs = -1;
+    private int volume = -1;
 
     public Port getLeftMotorPort() {
         return leftMortPort;
@@ -91,12 +91,12 @@ public class RobotFileBom {
         this.proxyIp = proxyIp;
     }
 
-    public int getSensorMessageDelay() {
-        return sensorMessageDelay;
+    public int getSensorMessageDelayMs() {
+        return sensorMessageDelayMs;
     }
 
-    public void setSensorMessageDelay(int sensorMessageDelay) {
-        this.sensorMessageDelay = sensorMessageDelay;
+    public void setSensorMessageDelayMs(int sensorMessageDelayMs) {
+        this.sensorMessageDelayMs = sensorMessageDelayMs;
     }
 
     public int getVolume() {
@@ -105,5 +105,19 @@ public class RobotFileBom {
 
     public void setVolume(int volume) {
         this.volume = volume;
+    }
+
+    public boolean isModelComplete() {
+        return leftMortPort != null &&
+                rightMotorPort != null &&
+                rfidSensorPort != null &&
+                usSensorPort != null &&
+                proxyPushPort != -1 &&
+                proxyPullPort != -1 &&
+                proxyIp != null &&
+                volume != -1 &&
+                sensorMessageDelayMs != -1 &&
+                leftMortPort != rightMotorPort &&
+                rfidSensorPort != usSensorPort;
     }
 }

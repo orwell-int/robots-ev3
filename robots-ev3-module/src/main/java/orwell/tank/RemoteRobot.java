@@ -2,9 +2,7 @@ package orwell.tank;
 
 import lejos.hardware.*;
 import lejos.hardware.port.I2CPort;
-import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
-import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.internal.ev3.EV3LED;
 import lejos.mf.common.UnitMessage;
@@ -14,29 +12,25 @@ import org.slf4j.LoggerFactory;
 import orwell.tank.actions.IInputAction;
 import orwell.tank.actions.StopTank;
 import orwell.tank.communication.RobotMessageBroker;
+import orwell.tank.config.RobotFileBom;
+import orwell.tank.config.RobotIniFile;
+import orwell.tank.exception.ParseIniException;
+import orwell.tank.exception.RobotFileBomException;
 import orwell.tank.hardware.RfidFlagSensor;
 import orwell.tank.hardware.ThreadedSensor;
 import orwell.tank.hardware.Tracks;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
+import utils.Cli;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
-    private final static String IP_PROXY = "192.168.0.16";
-    private static final int PUSH_PORT = 10001;
-    private static final int PULL_PORT = 10000;
-    private static final Port LEFT_TRACK_PORT = MotorPort.C;
-    private static final Port RIGHT_TRACK_PORT = MotorPort.D;
-    private static final Port RFID_PORT = SensorPort.S1;
-    private static final Port US_PORT = SensorPort.S4;
-    private static final int VOLUME_PERCENT = 10;
-    private static final long SENSOR_MESSAGE_DELAY = 50;
     private static NXTUltrasonicSensor usSensor;
-    private static RemoteRobot remoteRobot;
     private final RobotMessageBroker robotMessageBroker;
+    private final RobotFileBom robotBom;
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
     private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
@@ -46,37 +40,55 @@ public class RemoteRobot extends Thread {
     private boolean ready = false;
     private long lastSensorMessageTime = System.currentTimeMillis();
 
-    public RemoteRobot(String serverIpAddress, int pushPort, int pullPort) {
-        robotMessageBroker = new RobotMessageBroker(serverIpAddress, pushPort, pullPort);
+    public RemoteRobot(RobotFileBom robotBom) {
+        this.robotBom = robotBom;
+        robotMessageBroker = new RobotMessageBroker(robotBom.getProxyIp(),
+                robotBom.getProxyPushPort(), robotBom.getProxyPullPort());
         initHardware();
-        Sound.twoBeeps();
         Button.ESCAPE.addKeyListener(new EscapeListener());
     }
 
     public static void main(String[] args) throws IOException {
-        remoteRobot = new RemoteRobot(IP_PROXY, PUSH_PORT, PULL_PORT);
-        if (remoteRobot.isReady()) {
-            remoteRobot.start();
+        final RobotIniFile iniFile = new Cli(args).parse();
+        if (iniFile == null) {
+            logback.warn("Command Line Interface did not manage to extract a ini file config. Exiting now.");
+            System.exit(0);
         }
+        try {
+            final RobotFileBom robotBom = iniFile.parse();
+            final RemoteRobot remoteRobot = new RemoteRobot(robotBom);
+            if (remoteRobot.isReady()) {
+                remoteRobot.start();
+            }
+        } catch (ParseIniException e) {
+            logback.error("Failed to parse the ini file. Exiting now");
+        } catch (RobotFileBomException e) {
+            logback.error(e.getMessage());
+        }
+
     }
 
     private void initHardware() {
         led = new EV3LED();
-        Sound.setVolume(VOLUME_PERCENT);
+        Sound.setVolume(robotBom.getVolume());
         try {
-            initTracks(LEFT_TRACK_PORT, RIGHT_TRACK_PORT);
-            initRfid(RFID_PORT);
-            initUs(US_PORT);
+            initTracks(robotBom.getLeftMotorPort(), robotBom.isLeftMotorInverted(),
+                    robotBom.getRightMotorPort(), robotBom.isRightMotorInverted());
+            initRfid(robotBom.getRfidSensorPort());
+            initUs(robotBom.getUsSensorPort());
 
             ready = true;
+            Sound.twoBeeps();
         } catch (DeviceException e) {
             logback.error(e.getMessage());
             dispose();
         }
     }
 
-    private void initTracks(Port leftMotor, Port rightMotor) {
-        tracks = new Tracks(leftMotor, rightMotor);
+    private void initTracks(Port leftMotor, boolean isleftMotorInverted,
+                            Port rightMotor, boolean isrightMotorInverted) {
+        tracks = new Tracks(leftMotor, isleftMotorInverted,
+                rightMotor, isrightMotorInverted);
         logback.info("Tracks init Ok");
     }
 
@@ -119,8 +131,8 @@ public class RemoteRobot extends Thread {
             led.setPattern(EV3LED.COLOR_GREEN, EV3LED.PATTERN_HEARTBEAT);
 
             while (isRobotListeningAndConnected()) {
-                remoteRobot.listenForNewMessage();
-                remoteRobot.sendMessageOnSensorUpdate();
+                listenForNewMessage();
+                sendMessageOnSensorUpdate();
                 Thread.sleep(10);
             }
             isListening = false;
@@ -138,7 +150,7 @@ public class RemoteRobot extends Thread {
     }
 
     private boolean shouldTrySendSensorMessage() {
-        return lastSensorMessageTime + SENSOR_MESSAGE_DELAY <= System.currentTimeMillis();
+        return lastSensorMessageTime + robotBom.getSensorMessageDelayMs() <= System.currentTimeMillis();
     }
 
     private void checkSensorUpdate() {
@@ -162,7 +174,7 @@ public class RemoteRobot extends Thread {
     }
 
     private boolean isConnected() {
-        return remoteRobot.getConnectionState() == EnumConnectionState.CONNECTED;
+        return getConnectionState() == EnumConnectionState.CONNECTED;
     }
 
     private void listenForNewMessage() {

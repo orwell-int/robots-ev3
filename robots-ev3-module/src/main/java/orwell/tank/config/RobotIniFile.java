@@ -6,7 +6,9 @@ import lejos.hardware.port.SensorPort;
 import org.ini4j.Wini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import orwell.tank.exception.NotFileException;
 import orwell.tank.exception.ParseIniException;
+import orwell.tank.exception.RobotFileBomException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,22 +30,25 @@ public class RobotIniFile {
     private static final String PUSH_PORT_OPTION_NAME = "pushPort";
     private static final String PULL_PORT_OPTION_NAME = "pullPort";
     private static final String IP_OPTION_NAME = "ip";
-    private static final String SENSOR_DELAY_OPTION_NAME = "sensorMessageDelay";
+    private static final String SENSOR_DELAY_OPTION_NAME = "sensorMessageDelayMs";
     private static final String VOLUME_OPTION_NAME = "volume";
     private static final String MISC_SECTION_NAME = "misc";
 
     private final Wini iniFile;
 
-    public RobotIniFile(String filename) throws FileNotFoundException {
-        try {
-            iniFile = new Wini(new File(filename));
-        } catch (IOException e) {
-            logback.error(e.getMessage());
-            throw new FileNotFoundException();
+    public RobotIniFile(String filePath) throws IOException {
+        final File file = new File(filePath);
+        if (!file.exists()) {
+            throw new FileNotFoundException(filePath);
         }
+        if (file.isDirectory()) {
+            throw new NotFileException(filePath);
+        }
+
+        iniFile = new Wini(file);
     }
 
-    public RobotFileBom parse() throws ParseIniException {
+    public RobotFileBom parse() throws ParseIniException, RobotFileBomException {
         RobotFileBom robotFileBom = new RobotFileBom();
         robotFileBom.setLeftMortPort(charToPort(getLeftMotorPort()));
         robotFileBom.setIsLeftMotorInverted(getIsLeftMotorInverted());
@@ -54,9 +59,12 @@ public class RobotIniFile {
         robotFileBom.setProxyPushPort(getProxyPushPort());
         robotFileBom.setProxyPullPort(getProxyPullPort());
         robotFileBom.setProxyIp(getProxyIp());
-        robotFileBom.setSensorMessageDelay(getSensorMessageDelay());
+        robotFileBom.setSensorMessageDelayMs(getSensorMessageDelay());
         robotFileBom.setVolume(this.getVolume());
 
+        if (!robotFileBom.isModelComplete()) {
+            throw new RobotFileBomException(robotFileBom);
+        }
         return robotFileBom;
     }
 
