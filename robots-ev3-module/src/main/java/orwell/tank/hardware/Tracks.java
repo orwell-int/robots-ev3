@@ -16,14 +16,15 @@ public class Tracks {
     private EV3LargeRegulatedMotor rightMotor;
     private EV3LargeRegulatedMotor leftMotor;
 
-    public Tracks(Port leftMotorPort, boolean isleftMotorInverted, Port rightMotorPort, boolean isrightMotorInverted) {
+    public Tracks(Port leftMotorPort, boolean isLeftMotorInverted,
+                  Port rightMotorPort, boolean isRightMotorInverted) {
         if (leftMotorPort == rightMotorPort) {
             logback.error("MotorPorts should be different");
         }
         this.leftMotor = new EV3LargeRegulatedMotor(leftMotorPort);
         this.rightMotor = new EV3LargeRegulatedMotor(rightMotorPort);
-        this.isLeftInverted = isleftMotorInverted;
-        this.isRightInverted = isrightMotorInverted;
+        this.isLeftInverted = isLeftMotorInverted;
+        this.isRightInverted = isRightMotorInverted;
     }
 
     public void stop() {

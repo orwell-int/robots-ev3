@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/orwell-int/robots-ev3.svg?branch=master)](https://travis-ci.org/orwell-int/robots-ev3) [![Stories in Ready](https://badge.waffle.io/orwell-int/robots-ev3.png?label=ready&title=Ready)](https://waffle.io/orwell-int/robots-ev3) [![Coverage Status](https://coveralls.io/repos/orwell-int/robots-ev3/badge.svg?branch=master)](https://coveralls.io/r/orwell-int/robots-ev3?branch=master)
+
 robots-ev3
 ============
 
@@ -63,4 +64,14 @@ You can also run the jar created by the install to start the application from th
 Provided you already copied the tank.config.ini and the jar on the target
 ```
 jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot -f tank.config.ini
+```
+
+Local setup for coverage with coveralls
+---------------------------------------
+
+To update the coveralls status, export your repo token in the following environment variable:
+(You will find it on https://coveralls.io/r/orwell-int/robots-ev3)
+```
+export COVERALLS_REPO_TOKEN=yourToken
+mvn clean cobertura:cobertura coveralls:report
 ```

@@ -48,7 +48,7 @@ public class RobotIniFile {
         iniFile = new Wini(file);
     }
 
-    public RobotFileBom parse() throws ParseIniException, RobotFileBomException {
+    public RobotFileBom parse() throws ExceptionInInitializerError, ParseIniException, RobotFileBomException {
         RobotFileBom robotFileBom = new RobotFileBom();
         robotFileBom.setLeftMortPort(charToPort(getLeftMotorPort()));
         robotFileBom.setIsLeftMotorInverted(getIsLeftMotorInverted());
@@ -108,7 +108,7 @@ public class RobotIniFile {
         return iniFile.get(LEFT_MOTOR_SECTION_NAME, PORT_OPTION_NAME, char.class);
     }
 
-    private Port charToPort(char c) throws ParseIniException {
+    private Port charToPort(char c) throws ParseIniException, ExceptionInInitializerError {
         switch (c) {
             case 'A':
                 return MotorPort.A;
