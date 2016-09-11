@@ -77,7 +77,7 @@ public class RobotMessageBroker {
     }
 
     public void sendMessage(UnitMessage message) {
-        logback.debug("Sending " + message.getMessageType() + " message to proxy");
+        logback.debug("Sending " + message.getMessageType() + " message to proxy: " + message.getPayload());
         sender.send(message.toString());
     }
 }

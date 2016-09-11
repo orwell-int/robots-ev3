@@ -1,6 +1,5 @@
 package orwell.tank.hardware;
 
-import lejos.hardware.DeviceException;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.robotics.RegulatedMotor;
@@ -12,21 +11,20 @@ import org.slf4j.LoggerFactory;
  */
 public class Tracks {
     private final static Logger logback = LoggerFactory.getLogger(Tracks.class);
-    private static boolean isLeftInverted = false;
-    private static boolean isRightInverted = false;
+    private boolean isLeftInverted = false;
+    private boolean isRightInverted = false;
     private EV3LargeRegulatedMotor rightMotor;
     private EV3LargeRegulatedMotor leftMotor;
 
-    public Tracks(Port leftMotorPort, Port rightMotorPort) {
+    public Tracks(Port leftMotorPort, boolean isLeftMotorInverted,
+                  Port rightMotorPort, boolean isRightMotorInverted) {
         if (leftMotorPort == rightMotorPort) {
             logback.error("MotorPorts should be different");
         }
-        try {
-            this.leftMotor = new EV3LargeRegulatedMotor(leftMotorPort);
-        } catch (DeviceException e) {
-
-        }
+        this.leftMotor = new EV3LargeRegulatedMotor(leftMotorPort);
         this.rightMotor = new EV3LargeRegulatedMotor(rightMotorPort);
+        this.isLeftInverted = isLeftMotorInverted;
+        this.isRightInverted = isRightMotorInverted;
     }
 
     public void stop() {
@@ -44,10 +42,10 @@ public class Tracks {
 
     private void setPowerToMotor(EV3LargeRegulatedMotor motor, double power) {
         motor.setSpeed((float) (motor.getMaxSpeed() * power));
-        if (0 < power)
-            motor.backward();
-        else if (0 > power)
+        if (power > 0)
             motor.forward();
+        else if (power < 0)
+            motor.backward();
         else
             motor.flt();
     }
