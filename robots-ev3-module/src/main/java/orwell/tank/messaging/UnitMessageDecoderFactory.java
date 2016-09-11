@@ -33,6 +33,10 @@ public class UnitMessageDecoderFactory {
             payloadBody = Splice.subList(payloadArray, 1, payloadArray.size());
         }
 
+        if (UnitMessageType.Connection == message.getMessageType()) {
+            return new Connection(payloadHeader);
+        }
+
         switch (payloadHeader) {
             case "stop":
                 return new StopTank(payloadBody);
@@ -50,6 +54,8 @@ public class UnitMessageDecoderFactory {
     }
 
     private static boolean isNotHandled(UnitMessage message) {
-        return message == null || UnitMessageType.Command != message.getMessageType();
+        return message == null ||
+                (UnitMessageType.Command != message.getMessageType() &&
+                        UnitMessageType.Connection != message.getMessageType());
     }
 }

@@ -6,6 +6,7 @@ import lejos.hardware.port.Port;
 import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.internal.ev3.EV3LED;
 import lejos.mf.common.UnitMessage;
+import lejos.mf.common.UnitMessageType;
 import lejos.mf.common.exception.UnitMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
+    private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 5;
     private static NXTUltrasonicSensor usSensor;
     private final RobotMessageBroker robotMessageBroker;
     private final RobotFileBom robotBom;
@@ -85,10 +87,12 @@ public class RemoteRobot extends Thread {
         }
     }
 
-    private void initTracks(Port leftMotor, boolean isleftMotorInverted,
-                            Port rightMotor, boolean isrightMotorInverted) {
-        tracks = new Tracks(leftMotor, isleftMotorInverted,
-                rightMotor, isrightMotorInverted);
+    private void initTracks(Port leftMotor, boolean isLeftMotorInverted,
+                            Port rightMotor, boolean isRightMotorInverted) {
+        logback.debug("Init tracks: [" + leftMotor.getName() + "] " + isLeftMotorInverted +
+                " [" + rightMotor.getName() + "] " + isRightMotorInverted);
+        tracks = new Tracks(leftMotor, isLeftMotorInverted,
+                rightMotor, isRightMotorInverted);
         logback.info("Tracks init Ok");
     }
 
@@ -120,24 +124,36 @@ public class RemoteRobot extends Thread {
 
     public EnumConnectionState connect() {
         robotMessageBroker.connect();
-        setConnectionState(EnumConnectionState.CONNECTED);
-        Sound.beepSequenceUp();
         return getConnectionState();
     }
 
     private void startReceivingMessagesLoop() {
         try {
+            establishFirstConnection();
             isListening = true;
-            led.setPattern(EV3LED.COLOR_GREEN, EV3LED.PATTERN_HEARTBEAT);
-
             while (isRobotListeningAndConnected()) {
                 listenForNewMessage();
                 sendMessageOnSensorUpdate();
-                Thread.sleep(10);
+                sleepBetweenMessages();
             }
             isListening = false;
         } catch (Exception e) {
             logback.error("Exception during RemoteRobot run: " + e.getMessage());
+        }
+    }
+
+    private void establishFirstConnection() {
+        while (getConnectionState() != EnumConnectionState.CONNECTED) {
+            listenForNewMessage();
+            sleepBetweenMessages();
+        }
+    }
+
+    private void sleepBetweenMessages() {
+        try {
+            sleep(THREAD_SLEEP_BETWEEN_MSG_MS);
+        } catch (InterruptedException e) {
+            logback.error(e.getMessage());
         }
     }
 
@@ -167,6 +183,14 @@ public class RemoteRobot extends Thread {
         }
         sensorsMessages.clear();
         lastSensorMessageTime = System.currentTimeMillis();
+    }
+
+    public void sendConnectionAckMessage() {
+        robotMessageBroker.sendMessage(new UnitMessage(UnitMessageType.Connection, "connected"));
+    }
+
+    public void sendConnectionCloseMessage() {
+        robotMessageBroker.sendMessage(new UnitMessage(UnitMessageType.Connection, "close"));
     }
 
     private boolean isRobotListeningAndConnected() {
@@ -204,9 +228,10 @@ public class RemoteRobot extends Thread {
 
     public void stopRobotAndDisconnect() {
         stopTank();
-        led.setPattern(EV3LED.COLOR_NONE);
         disconnect();
         logback.info("Robot is stopped and " + getConnectionState());
+        led.setPattern(EV3LED.COLOR_NONE);
+
     }
 
     private void stopTank() {
@@ -216,10 +241,9 @@ public class RemoteRobot extends Thread {
 
     public EnumConnectionState disconnect() {
         if (EnumConnectionState.CONNECTED == getConnectionState()) {
+            setConnectionState(EnumConnectionState.NOT_CONNECTED);
             robotMessageBroker.disconnect();
         }
-        setConnectionState(EnumConnectionState.NOT_CONNECTED);
-        Sound.beepSequence();
         return getConnectionState();
     }
 
@@ -229,6 +253,16 @@ public class RemoteRobot extends Thread {
 
     public void setConnectionState(EnumConnectionState connectionState) {
         this.connectionState = connectionState;
+        logback.info("Tank changed its connection status to " + connectionState);
+        if (connectionState == EnumConnectionState.NOT_CONNECTED) {
+            sendConnectionCloseMessage();
+            Sound.beepSequence();
+            led.setPattern(EV3LED.COLOR_RED, EV3LED.PATTERN_BLINK);
+        }
+        if (connectionState == EnumConnectionState.CONNECTED) {
+            Sound.beepSequenceUp();
+            led.setPattern(EV3LED.COLOR_GREEN, EV3LED.PATTERN_HEARTBEAT);
+        }
     }
 
     private void closeHardware() {

@@ -1,6 +1,5 @@
 package orwell.tank.actions;
 
-import lejos.hardware.Sound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import orwell.tank.RemoteRobot;
@@ -41,7 +40,9 @@ public class Move implements IInputAction {
     }
 
     public void stop(RemoteRobot remoteRobot) {
-        remoteRobot.getTracks().stop();
+        if (remoteRobot.getTracks() != null) {
+            remoteRobot.getTracks().stop();
+        }
     }
 
     public boolean hasMove() {
