@@ -96,16 +96,24 @@ public class RemoteRobot extends Thread {
         logback.info("Tracks init Ok");
     }
 
-    private void initRfid(Port port) {
-        I2CPort i2cPort = port.open(I2CPort.class);
+    private void initRfid(Port rfidPort) {
+        if (rfidPort == null) {
+            logback.info("No RFID Sensor configured");
+            return;
+        }
+        I2CPort i2cPort = rfidPort.open(I2CPort.class);
         i2cPort.setType(I2CPort.TYPE_LOWSPEED_9V);
         ThreadedSensor<Long> rfidThreadedSensor = new ThreadedSensor<>(new RfidFlagSensor(i2cPort));
         threadedSensorList.add(rfidThreadedSensor);
         rfidThreadedSensor.start();
-        logback.info("Rfid init Ok");
+        logback.info("RFID init Ok");
     }
 
     private void initUs(Port usPort) {
+        if (usPort == null) {
+            logback.info("No US Sensor configured");
+            return;
+        }
         usSensor = new NXTUltrasonicSensor(usPort);
         logback.info("US init Ok");
     }

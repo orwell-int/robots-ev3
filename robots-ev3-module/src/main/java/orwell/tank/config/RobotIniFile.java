@@ -93,11 +93,21 @@ public class RobotIniFile {
     }
 
     private char getUsSensorPort() {
-        return iniFile.get(US_SECTION_NAME, PORT_OPTION_NAME, char.class);
+        try {
+            return iniFile.get(US_SECTION_NAME, PORT_OPTION_NAME, char.class);
+        } catch (IllegalArgumentException e) {
+            logback.info("UsSensor Port argument not understood, defaulting to null");
+            return 0;
+        }
     }
 
     private char getRfidSensorPort() {
-        return iniFile.get(RFID_SECTION_NAME, PORT_OPTION_NAME, char.class);
+        try {
+            return iniFile.get(RFID_SECTION_NAME, PORT_OPTION_NAME, char.class);
+        } catch (IllegalArgumentException e) {
+            logback.info("RfidSensor Port argument not understood, defaulting to null");
+            return 0;
+        }
     }
 
     private char getRightMotorPort() {

@@ -37,7 +37,7 @@ public class RobotFileBomTest {
             final Port US_PORT_TEST = SensorPort.S2;
             final Port LEFT_MOTOR_PORT_TEST = MotorPort.A;
             final Port RIGHT_MOTOR_PORT_TEST = MotorPort.B;
-            
+
             fileBom = new RobotFileBom();
             fileBom.setLeftMotorPort(LEFT_MOTOR_PORT_TEST);
             fileBom.setIsLeftMotorInverted(IS_LEFT_INVERTED_TEST);
@@ -57,7 +57,7 @@ public class RobotFileBomTest {
 
     @Test
     public void testIsModelComplete_true() {
-        if (fileBom != null)  {
+        if (fileBom != null) {
             assertTrue(fileBom.isModelValid());
         } else {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");

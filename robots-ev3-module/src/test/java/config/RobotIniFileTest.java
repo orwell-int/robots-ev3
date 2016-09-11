@@ -18,6 +18,8 @@ import static org.junit.Assert.*;
 public class RobotIniFileTest {
     private final static Logger logback = LoggerFactory.getLogger(RobotIniFileTest.class);
     private static final String R2D2_INI_FILENAME = "src/test/resources/tank.TEST.ini";
+    private static final String R2D2_INI_NO_RFID_FILENAME = "src/test/resources/tank.TEST_NO_RFID.ini";
+    private static final String R2D2_INI_NO_US_FILENAME = "src/test/resources/tank.TEST_NO_US.ini";
 
     @Test
     public void testConstructor() throws IOException {
@@ -41,6 +43,30 @@ public class RobotIniFileTest {
             assertEquals("192.168.0.16", fileBom.getProxyIp());
             assertEquals(50, fileBom.getSensorMessageDelayMs());
             assertEquals(30, fileBom.getVolume());
+        } catch (ExceptionInInitializerError e) {
+            logback.warn("Cannot perform the test because no EV3 device is on the local network");
+        }
+    }
+
+    @Test
+    public void testParse_NoRfid() throws Exception {
+        RobotIniFile iniFile = new RobotIniFile(R2D2_INI_NO_RFID_FILENAME);
+        try {
+            RobotFileBom fileBom = iniFile.parse();
+            assertNull(fileBom.getRfidSensorPort());
+
+        } catch (ExceptionInInitializerError e) {
+            logback.warn("Cannot perform the test because no EV3 device is on the local network");
+        }
+    }
+
+    @Test
+    public void testParse_NoUs() throws Exception {
+        RobotIniFile iniFile = new RobotIniFile(R2D2_INI_NO_US_FILENAME);
+        try {
+            RobotFileBom fileBom = iniFile.parse();
+            assertNull(fileBom.getUsSensorPort());
+
         } catch (ExceptionInInitializerError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }
