@@ -50,7 +50,7 @@ public class RobotIniFile {
 
     public RobotFileBom parse() throws ExceptionInInitializerError, ParseIniException, RobotFileBomException {
         RobotFileBom robotFileBom = new RobotFileBom();
-        robotFileBom.setLeftMortPort(charToPort(getLeftMotorPort()));
+        robotFileBom.setLeftMotorPort(charToPort(getLeftMotorPort()));
         robotFileBom.setIsLeftMotorInverted(getIsLeftMotorInverted());
         robotFileBom.setRightMotorPort(charToPort(getRightMotorPort()));
         robotFileBom.setIsRightMotorInverted(getIsRightMotorInverted());
@@ -62,7 +62,7 @@ public class RobotIniFile {
         robotFileBom.setSensorMessageDelayMs(getSensorMessageDelay());
         robotFileBom.setVolume(this.getVolume());
 
-        if (!robotFileBom.isModelComplete()) {
+        if (!robotFileBom.isModelValid()) {
             throw new RobotFileBomException(robotFileBom);
         }
         return robotFileBom;
@@ -126,6 +126,8 @@ public class RobotIniFile {
                 return SensorPort.S3;
             case '4':
                 return SensorPort.S4;
+            case 0:
+                return null;
             default:
                 throw new ParseIniException("Port value [" + c + "] is not valid. " +
                         "Should be A, B, C, D (motors) or 1, 2, 3, 4 (sensors)");

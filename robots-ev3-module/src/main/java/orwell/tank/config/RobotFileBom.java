@@ -23,7 +23,7 @@ public class RobotFileBom {
         return leftMortPort;
     }
 
-    public void setLeftMortPort(Port leftMortPort) {
+    public void setLeftMotorPort(Port leftMortPort) {
         this.leftMortPort = leftMortPort;
     }
 
@@ -107,17 +107,21 @@ public class RobotFileBom {
         this.volume = volume;
     }
 
-    public boolean isModelComplete() {
+    public boolean isModelValid() {
         return leftMortPort != null &&
                 rightMotorPort != null &&
-                rfidSensorPort != null &&
-                usSensorPort != null &&
                 proxyPushPort != -1 &&
                 proxyPullPort != -1 &&
+                proxyPullPort != proxyPushPort &&
                 proxyIp != null &&
                 volume != -1 &&
                 sensorMessageDelayMs != -1 &&
                 leftMortPort != rightMotorPort &&
-                rfidSensorPort != usSensorPort;
+                areSensorsPortsDifferent();
+    }
+
+    private boolean areSensorsPortsDifferent() {
+        return (rfidSensorPort == null && usSensorPort == null) ||
+                (rfidSensorPort != usSensorPort);
     }
 }
