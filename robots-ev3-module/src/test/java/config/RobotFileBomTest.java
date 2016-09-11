@@ -52,6 +52,8 @@ public class RobotFileBomTest {
             fileBom.setVolume(VOLUME_TEST);
         } catch (ExceptionInInitializerError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
+        } catch (NoClassDefFoundError e) {
+            logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }
     }
 
