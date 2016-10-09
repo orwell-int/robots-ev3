@@ -4,9 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <debug>false</debug>
-        <brick.host>192.168.2.33</brick.host>
+        <brick.host>192.168.0.17</brick.host>
         <brick.home>/home/root</brick.home>
         <brick.user>root</brick.user>
         <brick.debug.port>4000</brick.debug.port>
@@ -21,7 +20,6 @@
         <artifactId>robots-ev3</artifactId>
         <version>0.1.0</version>
     </parent>
-
     <dependencies>
         <dependency>
             <groupId>lejos.ev3</groupId>

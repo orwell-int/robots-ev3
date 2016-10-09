@@ -1,9 +1,7 @@
 package orwell.tank;
 
 import lejos.hardware.*;
-import lejos.hardware.port.I2CPort;
 import lejos.hardware.port.Port;
-import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.internal.ev3.EV3LED;
 import lejos.mf.common.UnitMessage;
 import lejos.mf.common.UnitMessageType;
@@ -20,6 +18,7 @@ import orwell.tank.exception.RobotFileBomException;
 import orwell.tank.hardware.RfidFlagSensor;
 import orwell.tank.hardware.ThreadedSensor;
 import orwell.tank.hardware.Tracks;
+import orwell.tank.hardware.UsRadarSensor;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
@@ -30,7 +29,6 @@ import java.util.ArrayList;
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
     private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 5;
-    private static NXTUltrasonicSensor usSensor;
     private final RobotMessageBroker robotMessageBroker;
     private final RobotFileBom robotBom;
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
@@ -89,8 +87,8 @@ public class RemoteRobot extends Thread {
 
     private void initTracks(Port leftMotor, boolean isLeftMotorInverted,
                             Port rightMotor, boolean isRightMotorInverted) {
-        logback.debug("Init tracks: [" + leftMotor.getName() + "] " + isLeftMotorInverted +
-                " [" + rightMotor.getName() + "] " + isRightMotorInverted);
+        logback.debug("Init tracks: [" + leftMotor.getName() + "] inverted: " + isLeftMotorInverted +
+                " [" + rightMotor.getName() + "] inverted: " + isRightMotorInverted);
         tracks = new Tracks(leftMotor, isLeftMotorInverted,
                 rightMotor, isRightMotorInverted);
         logback.info("Tracks init Ok");
@@ -101,9 +99,7 @@ public class RemoteRobot extends Thread {
             logback.info("No RFID Sensor configured");
             return;
         }
-        I2CPort i2cPort = rfidPort.open(I2CPort.class);
-        i2cPort.setType(I2CPort.TYPE_LOWSPEED_9V);
-        ThreadedSensor<Long> rfidThreadedSensor = new ThreadedSensor<>(new RfidFlagSensor(i2cPort));
+        ThreadedSensor<Long> rfidThreadedSensor = new ThreadedSensor<>(new RfidFlagSensor(rfidPort));
         threadedSensorList.add(rfidThreadedSensor);
         rfidThreadedSensor.start();
         logback.info("RFID init Ok");
@@ -114,7 +110,9 @@ public class RemoteRobot extends Thread {
             logback.info("No US Sensor configured");
             return;
         }
-        usSensor = new NXTUltrasonicSensor(usPort);
+        ThreadedSensor<Float> usThreadedSensor = new ThreadedSensor<>(new UsRadarSensor(usPort));
+        threadedSensorList.add(usThreadedSensor);
+        usThreadedSensor.start();
         logback.info("US init Ok");
     }
 
@@ -137,8 +135,8 @@ public class RemoteRobot extends Thread {
 
     private void startReceivingMessagesLoop() {
         try {
-            establishFirstConnection();
             isListening = true;
+            establishFirstConnection();
             while (isRobotListeningAndConnected()) {
                 listenForNewMessage();
                 sendMessageOnSensorUpdate();
@@ -151,7 +149,7 @@ public class RemoteRobot extends Thread {
     }
 
     private void establishFirstConnection() {
-        while (getConnectionState() != EnumConnectionState.CONNECTED) {
+        while (isRobotListeningAndNotConnected()) {
             listenForNewMessage();
             sleepBetweenMessages();
         }
@@ -199,6 +197,10 @@ public class RemoteRobot extends Thread {
 
     public void sendConnectionCloseMessage() {
         robotMessageBroker.sendMessage(new UnitMessage(UnitMessageType.Connection, "close"));
+    }
+
+    private boolean isRobotListeningAndNotConnected() {
+        return isListening && !isConnected();
     }
 
     private boolean isRobotListeningAndConnected() {
@@ -277,10 +279,9 @@ public class RemoteRobot extends Thread {
         if (tracks != null)
             tracks.close();
         for (ThreadedSensor sensor : threadedSensorList) {
+            sensor.stop();
             sensor.close();
         }
-        if (usSensor != null)
-            usSensor.close();
     }
 
     public Tracks getTracks() {

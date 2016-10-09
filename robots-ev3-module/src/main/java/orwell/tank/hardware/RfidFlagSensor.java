@@ -1,17 +1,27 @@
 package orwell.tank.hardware;
 
 import lejos.hardware.port.I2CPort;
+import lejos.hardware.port.Port;
 import lejos.hardware.sensor.RFIDSensor;
 import lejos.mf.common.UnitMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Created by Michaël Ludmann on 6/10/15.
  */
-public class RfidFlagSensor extends RFIDSensor implements ISensor<Long> {
+public class RfidFlagSensor implements ISensor<Long> {
     private final static Logger logback = LoggerFactory.getLogger(RFIDSensor.class);
+    private static final int VALUE_READ_COUNT_THRESHOLD = 999;
+    private static final long SLEEP_BETWEEN_RESTART_MS = 315;
+    private static final long READ_VALUE_INTERVAL = 250;
+    private final Port port;
     private SensorMeasure<Long> sensorMeasure;
+    private int valueReadCount = 0;
+    private RFIDSensor rfidSensor;
+    private I2CPort i2cPort;
 
     /**
      * Create a class to provide access to the device. Perform device
@@ -19,9 +29,18 @@ public class RfidFlagSensor extends RFIDSensor implements ISensor<Long> {
      *
      * @param port The sensor port to use for this device.
      */
-    public RfidFlagSensor(I2CPort port) {
-        super(port);
+    public RfidFlagSensor(Port port) {
+        this.port = port;
+        initRfid(port);
         sensorMeasure = new SensorMeasure<>();
+    }
+
+    private void initRfid(Port port) {
+        i2cPort = port.open(I2CPort.class);
+        i2cPort.setType(I2CPort.TYPE_LOWSPEED_9V);
+        rfidSensor = new RFIDSensor(i2cPort);
+        rfidSensor.getSerialNo(); // might be required to avoid a fatal crash
+        logback.info("RFID sensor initialized");
     }
 
     @Override
@@ -31,16 +50,34 @@ public class RfidFlagSensor extends RFIDSensor implements ISensor<Long> {
 
     @Override
     public void readValue() {
-        sensorMeasure.set(readTransponderAsLong(true)); // this also makes the current thread sleep
+        if (valueReadCount >= VALUE_READ_COUNT_THRESHOLD) {
+            this.close();
+            try {
+                sleep(SLEEP_BETWEEN_RESTART_MS);
+            } catch (InterruptedException e) {
+                logback.error(e.getMessage());
+            }
+            initRfid(port);
+        }
+        sensorMeasure.set(rfidSensor.readTransponderAsLong(true)); // this also makes the current thread sleep
+        valueReadCount++;
     }
 
     @Override
     public long getReadValueInterval() {
-        return 0;
+        return READ_VALUE_INTERVAL;
     }
 
     @Override
     public UnitMessageType getType() {
         return UnitMessageType.Rfid;
+    }
+
+    @Override
+    public void close() {
+        rfidSensor.stop();
+        rfidSensor.close();
+        i2cPort.close();
+        logback.info("RFID sensor closed");
     }
 }
