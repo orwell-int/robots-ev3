@@ -18,6 +18,7 @@ public class RobotFileBom {
     private String proxyIp = null;
     private int sensorMessageDelayMs = -1;
     private int volume = -1;
+    private Port colorSensorPort = null;
 
     public Port getLeftMotorPort() {
         return leftMortPort;
@@ -123,5 +124,13 @@ public class RobotFileBom {
     private boolean areSensorsPortsDifferent() {
         return (rfidSensorPort == null && usSensorPort == null) ||
                 (rfidSensorPort != usSensorPort);
+    }
+
+    public Port getColorSensorPort() {
+        return colorSensorPort;
+    }
+
+    public void setColorSensorPort(Port colorSensorPort) {
+        this.colorSensorPort = colorSensorPort;
     }
 }

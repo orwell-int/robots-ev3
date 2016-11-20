@@ -33,6 +33,7 @@ public class RobotIniFile {
     private static final String SENSOR_DELAY_OPTION_NAME = "sensorMessageDelayMs";
     private static final String VOLUME_OPTION_NAME = "volume";
     private static final String MISC_SECTION_NAME = "misc";
+    private static final String COLOR_SECTION_NAME = "colorSensor";
 
     private final Wini iniFile;
 
@@ -61,6 +62,7 @@ public class RobotIniFile {
         robotFileBom.setProxyIp(getProxyIp());
         robotFileBom.setSensorMessageDelayMs(getSensorMessageDelay());
         robotFileBom.setVolume(this.getVolume());
+        robotFileBom.setColorSensorPort(charToPort(getColorSensorPort()));
 
         if (!robotFileBom.isModelValid()) {
             throw new RobotFileBomException(robotFileBom);
@@ -106,6 +108,15 @@ public class RobotIniFile {
             return iniFile.get(RFID_SECTION_NAME, PORT_OPTION_NAME, char.class);
         } catch (IllegalArgumentException e) {
             logback.info("RfidSensor Port argument not understood, defaulting to null");
+            return 0;
+        }
+    }
+
+    private char getColorSensorPort() {
+        try {
+            return iniFile.get(COLOR_SECTION_NAME, PORT_OPTION_NAME, char.class);
+        } catch (IllegalArgumentException e) {
+            logback.info("ColorSensor Port argument not understood, defaulting to null");
             return 0;
         }
     }

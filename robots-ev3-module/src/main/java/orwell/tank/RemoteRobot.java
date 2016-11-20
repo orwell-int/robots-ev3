@@ -15,10 +15,7 @@ import orwell.tank.config.RobotFileBom;
 import orwell.tank.config.RobotIniFile;
 import orwell.tank.exception.ParseIniException;
 import orwell.tank.exception.RobotFileBomException;
-import orwell.tank.hardware.RfidFlagSensor;
-import orwell.tank.hardware.ThreadedSensor;
-import orwell.tank.hardware.Tracks;
-import orwell.tank.hardware.UsRadarSensor;
+import orwell.tank.hardware.*;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
@@ -74,7 +71,7 @@ public class RemoteRobot extends Thread {
         try {
             initTracks(robotBom.getLeftMotorPort(), robotBom.isLeftMotorInverted(),
                     robotBom.getRightMotorPort(), robotBom.isRightMotorInverted());
-            initRfid(robotBom.getRfidSensorPort());
+            initColor(robotBom.getColorSensorPort());
             initUs(robotBom.getUsSensorPort());
 
             ready = true;
@@ -85,6 +82,17 @@ public class RemoteRobot extends Thread {
         }
     }
 
+    private void initColor(Port colorSensorPort) {
+        if (colorSensorPort == null) {
+            logback.info("No Color Sensor configured");
+            return;
+        }
+        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(new ColorSensor(colorSensorPort));
+        threadedSensorList.add(colorThreadedSensor);
+        colorThreadedSensor.start();
+        logback.info("Color init Ok");
+    }
+
     private void initTracks(Port leftMotor, boolean isLeftMotorInverted,
                             Port rightMotor, boolean isRightMotorInverted) {
         logback.debug("Init tracks: [" + leftMotor.getName() + "] inverted: " + isLeftMotorInverted +
@@ -92,17 +100,6 @@ public class RemoteRobot extends Thread {
         tracks = new Tracks(leftMotor, isLeftMotorInverted,
                 rightMotor, isRightMotorInverted);
         logback.info("Tracks init Ok");
-    }
-
-    private void initRfid(Port rfidPort) {
-        if (rfidPort == null) {
-            logback.info("No RFID Sensor configured");
-            return;
-        }
-        ThreadedSensor<Long> rfidThreadedSensor = new ThreadedSensor<>(new RfidFlagSensor(rfidPort));
-        threadedSensorList.add(rfidThreadedSensor);
-        rfidThreadedSensor.start();
-        logback.info("RFID init Ok");
     }
 
     private void initUs(Port usPort) {
