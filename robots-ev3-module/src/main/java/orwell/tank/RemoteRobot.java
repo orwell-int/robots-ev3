@@ -73,6 +73,7 @@ public class RemoteRobot extends Thread {
                     robotBom.getRightMotorPort(), robotBom.isRightMotorInverted());
             initColor(robotBom.getColorSensorPort());
             initUs(robotBom.getUsSensorPort());
+            initBattery();
 
             ready = true;
             Sound.twoBeeps();
@@ -80,6 +81,13 @@ public class RemoteRobot extends Thread {
             logback.error(e.getMessage());
             dispose();
         }
+    }
+
+    private void initBattery() {
+        ThreadedSensor<String> batteryInfoThreaded = new ThreadedSensor<>(new BatteryInfo());
+        threadedSensorList.add(batteryInfoThreaded);
+        batteryInfoThreaded.start();
+        logback.info("Battery info init Ok");
     }
 
     private void initColor(Port colorSensorPort) {
