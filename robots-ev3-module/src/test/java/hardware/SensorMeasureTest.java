@@ -60,7 +60,7 @@ public class SensorMeasureTest {
         public SensorMeasure<Float> sensorMeasure;
 
         public ThreadTest() {
-            sensorMeasure = new SensorMeasure<Float>();
+            sensorMeasure = new SensorMeasure<>();
         }
 
 

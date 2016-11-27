@@ -43,9 +43,7 @@ public class RobotIniFileTest {
             assertEquals("192.168.0.16", fileBom.getProxyIp());
             assertEquals(50, fileBom.getSensorMessageDelayMs());
             assertEquals(30, fileBom.getVolume());
-        } catch (ExceptionInInitializerError e) {
-            logback.warn("Cannot perform the test because no EV3 device is on the local network");
-        } catch (NoClassDefFoundError e) {
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }
     }
@@ -57,9 +55,7 @@ public class RobotIniFileTest {
             RobotFileBom fileBom = iniFile.parse();
             assertNull(fileBom.getRfidSensorPort());
 
-        } catch (ExceptionInInitializerError e) {
-            logback.warn("Cannot perform the test because no EV3 device is on the local network");
-        } catch (NoClassDefFoundError e) {
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }
     }
@@ -71,9 +67,7 @@ public class RobotIniFileTest {
             RobotFileBom fileBom = iniFile.parse();
             assertNull(fileBom.getUsSensorPort());
 
-        } catch (ExceptionInInitializerError e) {
-            logback.warn("Cannot perform the test because no EV3 device is on the local network");
-        } catch (NoClassDefFoundError e) {
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }
     }

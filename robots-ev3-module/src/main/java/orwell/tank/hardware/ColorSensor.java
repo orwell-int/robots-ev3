@@ -12,13 +12,11 @@ import org.slf4j.LoggerFactory;
  */
 public class ColorSensor implements ISensor<Integer> {
     private final static Logger logback = LoggerFactory.getLogger(ColorSensor.class);
-    private final Port port;
     private EV3ColorSensor colorSensor;
     private SensorMeasure<Integer> sensorMeasure;
     private static final long READ_VALUE_INTERVAL = 5;
 
     public ColorSensor(Port port) {
-        this.port = port;
         initColorSensor(port);
         sensorMeasure = new SensorMeasure<>();
     }

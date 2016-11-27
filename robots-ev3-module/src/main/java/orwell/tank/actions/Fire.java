@@ -14,7 +14,6 @@ import static lejos.hardware.Sound.playTone;
 public class Fire implements IInputAction {
     private final static Logger logback = LoggerFactory.getLogger(Fire.class);
 
-    private boolean hasFire = false;
     private boolean leftWeapon;
     private boolean rightWeapon;
 
@@ -24,9 +23,6 @@ public class Fire implements IInputAction {
         if (2 == fireInput.size()) {
             leftWeapon = Boolean.parseBoolean(fireInput.get(0));
             rightWeapon = Boolean.parseBoolean(fireInput.get(1));
-            if (leftWeapon || rightWeapon) {
-                hasFire = true;
-            }
         }
     }
 
