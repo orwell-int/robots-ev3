@@ -62,7 +62,6 @@ public class RemoteRobot extends Thread {
         } catch (RobotFileBomException e) {
             logback.error(e.getMessage());
         }
-
     }
 
     private void initHardware() {
@@ -95,7 +94,7 @@ public class RemoteRobot extends Thread {
             logback.info("No Color Sensor configured");
             return;
         }
-        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(new ColorSensor(colorSensorPort));
+        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(new ColourSensor(colorSensorPort));
         threadedSensorList.add(colorThreadedSensor);
         colorThreadedSensor.start();
         logback.info("Color init Ok");

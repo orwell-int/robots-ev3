@@ -116,7 +116,7 @@ public class RobotIniFile {
         try {
             return iniFile.get(COLOR_SECTION_NAME, PORT_OPTION_NAME, char.class);
         } catch (IllegalArgumentException e) {
-            logback.info("ColorSensor Port argument not understood, defaulting to null");
+            logback.info("ColourSensor Port argument not understood, defaulting to null");
             return 0;
         }
     }
