@@ -1,4 +1,4 @@
-package config;
+package orwell.tank.config;
 
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
@@ -7,7 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import orwell.tank.config.RobotFileBom;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

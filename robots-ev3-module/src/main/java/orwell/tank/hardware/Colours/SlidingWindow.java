@@ -1,5 +1,8 @@
 package orwell.tank.hardware.Colours;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,6 +11,8 @@ import java.util.Map;
  * Created by Michaël Ludmann on 28/01/17.
  */
 public class SlidingWindow {
+    private final static Logger logback = LoggerFactory.getLogger(SlidingWindow.class);
+
     private static final Integer MIN_VALUE_FOR_MATCH = 8;
     private final int windowSize;
     private final ArrayDeque<EnumColours> slidingWindow;
@@ -23,15 +28,18 @@ public class SlidingWindow {
             EnumColours colourRemoved = slidingWindow.removeFirst();
             MutableInt count = colourCounterMap.get(colourRemoved);
             count.decrement();
+            logback.debug("Decrementing colour " + colourRemoved + " from sliding window to " + count.get());
         }
         slidingWindow.addLast(colour);
-        EnumColours colourAdded = slidingWindow.removeFirst();
-        MutableInt count = colourCounterMap.get(colourAdded);
+        MutableInt count = colourCounterMap.get(colour);
         if (count == null) {
-            colourCounterMap.put(colourAdded, new MutableInt());
+            colourCounterMap.put(colour, new MutableInt());
+            logback.debug("Adding colour " + colour + " in sliding window");
         } else {
             count.increment();
+            logback.debug("Incrementing colour " + colour + " in sliding window to " + count.get());
         }
+
     }
 
     public EnumColours getMainColour() {
@@ -44,6 +52,7 @@ public class SlidingWindow {
                 return entry.getKey();
             }
         }
+
         return EnumColours.NONE;
     }
 

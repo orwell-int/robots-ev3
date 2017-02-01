@@ -1,12 +1,10 @@
-package config;
+package orwell.tank.config;
 
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.SensorPort;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import orwell.tank.config.RobotFileBom;
-import orwell.tank.config.RobotIniFile;
 
 import java.io.IOException;
 

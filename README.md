@@ -40,10 +40,10 @@ tar -xvf leJOS_EV3_0.9.1-beta.tar.gz
 export EV3_HOME=leJOS_EV3_0.9.1-beta
 ```
 
-Configure your hardware setup
+Configure your orwell.tank.hardware setup
 ```
-Copy the robots-ev3-module/src/main/resources/tank.defaults.ini to tank.config.ini
-Edit it so as to reflect your own hardware and proxy configuration
+Copy the robots-ev3-module/src/main/resources/tank.defaults.ini to tank.orwell.tank.config.ini
+Edit it so as to reflect your own orwell.tank.hardware and proxy configuration
 Copy it on your EV3 in ${brick.home} (should be /home/root if you did not edit the pom.xml)
 ```
 
@@ -61,9 +61,9 @@ mvn install antrun:run
 Run without maven, once you have the jar
 ----------------------------------------
 You can also run the jar created by the install to start the application from the command line on the robot itself (through ssh)
-Provided you already copied the tank.config.ini and the jar on the target
+Provided you already copied the tank.orwell.tank.config.ini and the jar on the target
 ```
-jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot -f tank.config.ini
+jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot -f tank.orwell.tank.config.ini
 ```
 
 Local setup for coverage with coveralls

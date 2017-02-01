@@ -66,7 +66,7 @@ public class ColourSampler extends Thread {
     public static void main(String[] args) throws IOException {
         final RobotIniFile iniFile = new Cli(args).parse();
         if (iniFile == null) {
-            logback.warn("Command Line Interface did not manage to extract a ini file config. Exiting now.");
+            logback.warn("Command Line Interface did not manage to extract a ini file orwell.tank.config. Exiting now.");
             System.exit(0);
         }
         try {

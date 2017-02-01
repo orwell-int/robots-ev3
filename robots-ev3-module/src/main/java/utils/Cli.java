@@ -31,7 +31,7 @@ public class Cli {
     }
 
     /**
-     * Extract the config parameters used later by the ConfigFactory
+     * Extract the orwell.tank.config parameters used later by the ConfigFactory
      *
      * @return null if help is called or error happens during parsing
      */

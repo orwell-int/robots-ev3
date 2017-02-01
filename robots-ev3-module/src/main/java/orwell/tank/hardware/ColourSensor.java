@@ -15,9 +15,9 @@ public class ColourSensor implements ISensor<Integer> {
     private final static Logger logback = LoggerFactory.getLogger(ColourSensor.class);
     private EV3ColorSensor colorSensor;
     private SensorMeasure<Integer> sensorMeasure;
-    private static final long READ_VALUE_INTERVAL = 1;
+    private static final long READ_VALUE_INTERVAL_MS = 1;
     private ColourMap colourMap = new ColourMap();
-    private static final float sigmaFactor = 3.5f;
+    private static final float sigmaFactor = 5f;
     private static final int WINDOW_SIZE = 10;
     private SlidingWindow slidingWindow = new SlidingWindow(WINDOW_SIZE);
 
@@ -27,21 +27,22 @@ public class ColourSensor implements ISensor<Integer> {
         colourMap.addColour(
                 EnumColours.RED,
                 new ColourMatcher(
-                        new RgbColour(0.136712374f, 0.015125331f, 0.008912356f),
-                        new RgbColourSigma(0.00696957f, 0.001072834f, 0.000786368f),
-                        sigmaFactor));
-        colourMap.addColour(
-                EnumColours.BLUE,
-                new ColourMatcher(
-                        new RgbColour(0.032485062f, 0.058520435f, 0.05356543f),
-                        new RgbColourSigma(0.001230815f, 0.001799922f, 0.00144575f),
+                        new RgbColour(0.151151f, 0.01643667f, 0.00948284f),
+                        new RgbColourSigma(0.05888082f, 0.011222564f, 9.3079184E-3f),
                         sigmaFactor));
         colourMap.addColour(
                 EnumColours.GREEN,
                 new ColourMatcher(
-                        new RgbColour(0.059157122f, 0.11555687f, 0.020583311f),
-                        new RgbColourSigma(0.0016912251f, 0.0029267482f, 7.812728E-4f),
+                        new RgbColour(0.062760934f, 0.12154779f, 0.020936513f),
+                        new RgbColourSigma(0.010610968f, 0.014321462f, 6.953949E-3f),
                         sigmaFactor));
+        colourMap.addColour(
+                EnumColours.BLUE,
+                new ColourMatcher(
+                        new RgbColour(0.033704247f, 0.0603916f, 0.05437072f),
+                        new RgbColourSigma(8.384969E-3f, 8.9144957E-3f, 7.594952E-3f),
+                        sigmaFactor));
+        logback.debug("ColourSensor init done");
     }
 
     private void initColorSensor(Port port) {
@@ -59,14 +60,15 @@ public class ColourSensor implements ISensor<Integer> {
         float samples[] = new float[sensorMode.sampleSize()];
         sensorMode.fetchSample(samples, 0);
         RgbColour rgbColour = new RgbColour(samples[0], samples[1], samples[2]);
-        colourMap.getColour(rgbColour);
-//        ColorConverter colorConverter = new ColorConverter(samples);
-//        sensorMeasure.set(colorConverter.getColor());
+        slidingWindow.addColour(colourMap.getColour(rgbColour));
+        EnumColours colour = slidingWindow.getMainColour();
+        sensorMeasure.set(colour.ordinal());
+        logback.debug("ReadValue of colourSensor = " + colour);
     }
 
     @Override
     public long getReadValueInterval() {
-        return READ_VALUE_INTERVAL;
+        return READ_VALUE_INTERVAL_MS;
     }
 
     @Override
