@@ -11,14 +11,16 @@ import org.slf4j.LoggerFactory;
 import orwell.tank.actions.IInputAction;
 import orwell.tank.actions.StopTank;
 import orwell.tank.communication.RobotMessageBroker;
+import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.config.RobotFileBom;
 import orwell.tank.config.RobotIniFile;
 import orwell.tank.exception.ParseIniException;
-import orwell.tank.exception.RobotFileBomException;
+import orwell.tank.exception.FileBomException;
 import orwell.tank.hardware.*;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
+import utils.IniFiles;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public class RemoteRobot extends Thread {
     private Tracks tracks;
     private boolean ready = false;
     private long lastSensorMessageTime = System.currentTimeMillis();
+    private RobotColourConfigFileBom colourConfig;
 
     public RemoteRobot(RobotFileBom robotBom) {
         this.robotBom = robotBom;
@@ -46,20 +49,22 @@ public class RemoteRobot extends Thread {
     }
 
     public static void main(String[] args) throws IOException {
-        final RobotIniFile iniFile = new Cli(args).parse();
-        if (iniFile == null) {
+        final IniFiles iniFiles = new Cli(args).parse();
+        if (iniFiles == null || iniFiles.isPartiallyEmpty()) {
             logback.warn("Command Line Interface did not manage to extract a ini file orwell.tank.config. Exiting now.");
             System.exit(0);
         }
         try {
-            final RobotFileBom robotBom = iniFile.parse();
+            final RobotFileBom robotBom = iniFiles.robotIniFile.parse();
+            final RobotColourConfigFileBom colourConfigFileBom = iniFiles.colourConfigIniFile.parse();
             final RemoteRobot remoteRobot = new RemoteRobot(robotBom);
+            remoteRobot.setColourConfig(colourConfigFileBom);
             if (remoteRobot.isReady()) {
                 remoteRobot.start();
             }
         } catch (ParseIniException e) {
             logback.error("Failed to parse the ini file. Exiting now");
-        } catch (RobotFileBomException e) {
+        } catch (FileBomException e) {
             logback.error(e.getMessage());
         }
     }
@@ -94,7 +99,7 @@ public class RemoteRobot extends Thread {
             logback.info("No Color Sensor configured");
             return;
         }
-        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(new ColourSensor(colorSensorPort));
+        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(new ColourSensor(colorSensorPort, colourConfig));
         threadedSensorList.add(colorThreadedSensor);
         colorThreadedSensor.start();
         logback.info("Color init Ok");
@@ -294,6 +299,10 @@ public class RemoteRobot extends Thread {
 
     public boolean isReady() {
         return ready;
+    }
+
+    public void setColourConfig(RobotColourConfigFileBom colourConfig) {
+        this.colourConfig = colourConfig;
     }
 
     private class EscapeListener implements KeyListener {

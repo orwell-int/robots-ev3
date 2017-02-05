@@ -10,4 +10,4 @@ orwell/proxy/test/report/
 logs/
 build/
 target/
-robots-ev3-module/src/main/resources/tank.orwell.tank.config.ini
+robots-ev3-module/src/main/resources/tank.config.ini

@@ -9,15 +9,16 @@ import org.slf4j.LoggerFactory;
 public class RgbColour {
     private final static Logger logback = LoggerFactory.getLogger(RgbColour.class);
 
-    public final float red;
-    public final float green;
-    public final float blue;
+    public enum RgbColourChannels {Red, Green, Blue};
+
+    public float red;
+    public float green;
+    public float blue;
 
     public RgbColour(float red, float green, float blue) {
         this.red = red;
         this.green = green;
         this.blue = blue;
-        logback.debug(this.toString());
     }
 
     public RgbColour add(RgbColourSigma rgbColourSigma) {
@@ -40,8 +41,34 @@ public class RgbColour {
                 blue < rgbColour.blue;
     }
 
+    public void setChannel(RgbColourChannels channel, float value) {
+        switch (channel) {
+            case Red:
+                red = value;
+                break;
+            case Green:
+                green = value;
+                break;
+            case Blue:
+                blue = value;
+                break;
+        }
+    }
+
     @Override
     public String toString() {
         return "RgbColour: red = " + red + "; green = " + green + "; blue = " + blue;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (this.getClass() != obj.getClass()) return false;
+
+        RgbColour rgbColour = (RgbColour) obj;
+
+        return (this.red == rgbColour.red &&
+                this.green == rgbColour.green &&
+                this.blue == rgbColour.blue);
     }
 }

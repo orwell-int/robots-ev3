@@ -28,7 +28,6 @@ public class SlidingWindow {
             EnumColours colourRemoved = slidingWindow.removeFirst();
             MutableInt count = colourCounterMap.get(colourRemoved);
             count.decrement();
-            logback.debug("Decrementing colour " + colourRemoved + " from sliding window to " + count.get());
         }
         slidingWindow.addLast(colour);
         MutableInt count = colourCounterMap.get(colour);
@@ -37,7 +36,6 @@ public class SlidingWindow {
             logback.debug("Adding colour " + colour + " in sliding window");
         } else {
             count.increment();
-            logback.debug("Incrementing colour " + colour + " in sliding window to " + count.get());
         }
 
     }

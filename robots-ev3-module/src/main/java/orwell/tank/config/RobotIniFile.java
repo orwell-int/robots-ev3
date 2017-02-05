@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import orwell.tank.exception.NotFileException;
 import orwell.tank.exception.ParseIniException;
-import orwell.tank.exception.RobotFileBomException;
+import orwell.tank.exception.FileBomException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,7 +49,7 @@ public class RobotIniFile {
         iniFile = new Wini(file);
     }
 
-    public RobotFileBom parse() throws ExceptionInInitializerError, ParseIniException, RobotFileBomException {
+    public RobotFileBom parse() throws ExceptionInInitializerError, ParseIniException, FileBomException {
         RobotFileBom robotFileBom = new RobotFileBom();
         robotFileBom.setLeftMotorPort(charToPort(getLeftMotorPort()));
         robotFileBom.setIsLeftMotorInverted(getIsLeftMotorInverted());
@@ -65,7 +65,7 @@ public class RobotIniFile {
         robotFileBom.setColorSensorPort(charToPort(getColorSensorPort()));
 
         if (!robotFileBom.isModelValid()) {
-            throw new RobotFileBomException(robotFileBom);
+            throw new FileBomException(robotFileBom);
         }
         return robotFileBom;
     }

@@ -5,8 +5,8 @@ import orwell.tank.config.RobotFileBom;
 /**
  * Created by Michaël Ludmann on 09/09/16.
  */
-public class RobotFileBomException extends Exception {
-    public RobotFileBomException(RobotFileBom robotFileBom) {
+public class FileBomException extends Exception {
+    public FileBomException(RobotFileBom robotFileBom) {
         super("Model of Robot from ini file is incomplete");
     }
 }

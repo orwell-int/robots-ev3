@@ -10,11 +10,11 @@ import lejos.hardware.sensor.SensorMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import orwell.tank.config.RobotFileBom;
-import orwell.tank.config.RobotIniFile;
 import orwell.tank.exception.ParseIniException;
-import orwell.tank.exception.RobotFileBomException;
+import orwell.tank.exception.FileBomException;
 import orwell.tank.hardware.Colours.EnumColours;
 import utils.Cli;
+import utils.IniFiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,11 +31,12 @@ public class ColourSampler extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(ColourSampler.class);
     private static final long THREAD_SLEEP_BETWEEN_SAMPLES_MS = 1;
     private static final String SAMPLES_FILE_PATH = "/home/root/samples.csv";
-    private static final String COLOURS_CONFIG_FILE_PATH = "/home/root/colours_config.ini";
+    private static final String COLOURS_CONFIG_FILE_PATH = "/home/root/colours.config.ini";
+    private static final float SIGMA_FACTOR = 5;
     private final RobotFileBom robotBom;
     private boolean isListening = false;
     private boolean ready = false;
-    private EV3ColorSensor colorSensor;
+    private EV3ColorSensor colourSensor;
     private Path samplesPath;
     private Path coloursConfigPath;
     private EnumColours colorMode = EnumColours.NONE;
@@ -54,7 +55,7 @@ public class ColourSampler extends Thread {
 
     public ColourSampler(RobotFileBom robotBom) {
         this.robotBom = robotBom;
-        initColor(robotBom.getColorSensorPort());
+        initColour(robotBom.getColorSensorPort());
         initFiles();
         ready = true;
         Sound.twoBeeps();
@@ -64,20 +65,20 @@ public class ColourSampler extends Thread {
     }
 
     public static void main(String[] args) throws IOException {
-        final RobotIniFile iniFile = new Cli(args).parse();
-        if (iniFile == null) {
+        final IniFiles iniFiles = new Cli(args).parse();
+        if (iniFiles == null || iniFiles.robotIniFile == null) {
             logback.warn("Command Line Interface did not manage to extract a ini file orwell.tank.config. Exiting now.");
             System.exit(0);
         }
         try {
-            final RobotFileBom robotBom = iniFile.parse();
+            final RobotFileBom robotBom = iniFiles.robotIniFile.parse();
             final ColourSampler colourSampler = new ColourSampler(robotBom);
             if (colourSampler.isReady()) {
                 colourSampler.start();
             }
         } catch (ParseIniException e) {
             logback.error("Failed to parse the ini file. Exiting now");
-        } catch (RobotFileBomException e) {
+        } catch (FileBomException e) {
             logback.error(e.getMessage());
         }
     }
@@ -88,6 +89,8 @@ public class ColourSampler extends Thread {
 
         samplesPath = Paths.get(SAMPLES_FILE_PATH);
         coloursConfigPath = Paths.get(COLOURS_CONFIG_FILE_PATH);
+
+        writeGlobalConfig();
     }
 
     private void deleteAndCreateFile(String samplesFilePath) {
@@ -103,14 +106,14 @@ public class ColourSampler extends Thread {
         }
     }
 
-    private void initColor(Port colorSensorPort) {
-        if (colorSensorPort == null) {
-            logback.info("No Color Sensor configured");
+    private void initColour(Port colourSensorPort) {
+        if (colourSensorPort == null) {
+            logback.info("No Colour Sensor configured");
             return;
         }
-        colorSensor = new EV3ColorSensor(colorSensorPort);
-        sensorMode = colorSensor.getRGBMode();
-        logback.info("Color init Ok");
+        colourSensor = new EV3ColorSensor(colourSensorPort);
+        sensorMode = colourSensor.getRGBMode();
+        logback.info("Colour init Ok");
     }
 
     public void run() {
@@ -169,13 +172,13 @@ public class ColourSampler extends Thread {
     private void finalizeColour() {
         registerMode = EnumRegisterMode.OFF;
 
-        if(!redArray.isEmpty()) {
+        if(!redArray.isEmpty() && !greenArray.isEmpty() && !blueArray.isEmpty()) {
             computeAverages();
             computeSigmas();
             redArray.clear();
             greenArray.clear();
             blueArray.clear();
-            writeConfig();
+            writeColorConfig();
         }
         colorMode = colorMode.next();
 
@@ -190,18 +193,29 @@ public class ColourSampler extends Thread {
         Sound.beepSequenceUp();
     }
 
-    private void writeConfig() {
+    private void writeColorConfig() {
         String colorLine = "[" + colorMode + "]" + System.lineSeparator();
         String averagesLines = 
-                    "averageRed=" + redAverage + System.lineSeparator() +
-                    "averageGreen=" + greenAverage + System.lineSeparator() +
-                    "averageBlue=" + blueAverage + System.lineSeparator();
+                    "averageRed = " + redAverage + System.lineSeparator() +
+                    "averageGreen = " + greenAverage + System.lineSeparator() +
+                    "averageBlue = " + blueAverage + System.lineSeparator();
         String sigmasLines =
-                "sigmaRed=" + redSigma + System.lineSeparator() +
-                "sigmaGreen=" + greenSigma + System.lineSeparator() +
-                "sigmaBlue=" + blueSigma + System.lineSeparator();
+                "sigmaRed = " + redSigma + System.lineSeparator() +
+                "sigmaGreen = " + greenSigma + System.lineSeparator() +
+                "sigmaBlue = " + blueSigma + System.lineSeparator();
         try {
             Files.write(coloursConfigPath, (colorLine + averagesLines + sigmasLines).getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            logback.error(e.getMessage());
+            quit();
+        }
+    }
+
+    private void writeGlobalConfig() {
+        String globalLine = "[global]" + System.lineSeparator();
+        String sigmaFactorLine = "sigmaFactor = " + SIGMA_FACTOR + System.lineSeparator();
+        try {
+            Files.write(coloursConfigPath, (globalLine + sigmaFactorLine).getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
             logback.error(e.getMessage());
             quit();
@@ -260,7 +274,7 @@ public class ColourSampler extends Thread {
     }
 
     private void closeHardware() {
-        colorSensor.close();
+        colourSensor.close();
     }
 
     private enum EnumRegisterMode {
