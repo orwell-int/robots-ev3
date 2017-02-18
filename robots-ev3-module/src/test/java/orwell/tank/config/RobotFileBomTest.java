@@ -48,7 +48,7 @@ public class RobotFileBomTest {
             fileBom.setProxyPullPort(PULL_PORT_TEST);
             fileBom.setProxyIp(PROXY_IP_TEST);
             fileBom.setSensorMessageDelayMs(SENSOR_DELAY_MS_TEST);
-            fileBom.setVolume(VOLUME_TEST);
+            fileBom.setGlobalVolume(VOLUME_TEST);
         } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }

@@ -13,7 +13,6 @@ import orwell.tank.actions.StopTank;
 import orwell.tank.communication.RobotMessageBroker;
 import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.config.RobotFileBom;
-import orwell.tank.config.RobotIniFile;
 import orwell.tank.exception.ParseIniException;
 import orwell.tank.exception.FileBomException;
 import orwell.tank.hardware.*;
@@ -22,14 +21,15 @@ import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
 import utils.IniFiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
-    private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 5;
+    private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 3;
     private final RobotMessageBroker robotMessageBroker;
-    private final RobotFileBom robotBom;
+    private final RobotFileBom robotConfig;
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
     private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
@@ -40,10 +40,11 @@ public class RemoteRobot extends Thread {
     private long lastSensorMessageTime = System.currentTimeMillis();
     private RobotColourConfigFileBom colourConfig;
 
-    public RemoteRobot(RobotFileBom robotBom) {
-        this.robotBom = robotBom;
-        robotMessageBroker = new RobotMessageBroker(robotBom.getProxyIp(),
-                robotBom.getProxyPushPort(), robotBom.getProxyPullPort());
+    public RemoteRobot(RobotFileBom robotConfig, RobotColourConfigFileBom colourConfig) {
+        this.robotConfig = robotConfig;
+        this.colourConfig = colourConfig;
+        robotMessageBroker = new RobotMessageBroker(robotConfig.getProxyIp(),
+                robotConfig.getProxyPushPort(), robotConfig.getProxyPullPort());
         initHardware();
         Button.ESCAPE.addKeyListener(new EscapeListener());
     }
@@ -57,8 +58,7 @@ public class RemoteRobot extends Thread {
         try {
             final RobotFileBom robotBom = iniFiles.robotIniFile.parse();
             final RobotColourConfigFileBom colourConfigFileBom = iniFiles.colourConfigIniFile.parse();
-            final RemoteRobot remoteRobot = new RemoteRobot(robotBom);
-            remoteRobot.setColourConfig(colourConfigFileBom);
+            final RemoteRobot remoteRobot = new RemoteRobot(robotBom, colourConfigFileBom);
             if (remoteRobot.isReady()) {
                 remoteRobot.start();
             }
@@ -71,12 +71,12 @@ public class RemoteRobot extends Thread {
 
     private void initHardware() {
         led = new EV3LED();
-        Sound.setVolume(robotBom.getVolume());
+        Sound.setVolume(robotConfig.getGlobalVolume());
         try {
-            initTracks(robotBom.getLeftMotorPort(), robotBom.isLeftMotorInverted(),
-                    robotBom.getRightMotorPort(), robotBom.isRightMotorInverted());
-            initColor(robotBom.getColorSensorPort());
-            initUs(robotBom.getUsSensorPort());
+            initTracks(robotConfig.getLeftMotorPort(), robotConfig.isLeftMotorInverted(),
+                    robotConfig.getRightMotorPort(), robotConfig.isRightMotorInverted());
+            initColor(robotConfig.getColorSensorPort());
+            initUs(robotConfig.getUsSensorPort());
             initBattery();
 
             ready = true;
@@ -99,7 +99,8 @@ public class RemoteRobot extends Thread {
             logback.info("No Color Sensor configured");
             return;
         }
-        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(new ColourSensor(colorSensorPort, colourConfig));
+        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(
+                new ColourSensor(colorSensorPort, colourConfig));
         threadedSensorList.add(colorThreadedSensor);
         colorThreadedSensor.start();
         logback.info("Color init Ok");
@@ -181,7 +182,7 @@ public class RemoteRobot extends Thread {
     }
 
     private boolean shouldTrySendSensorMessage() {
-        return lastSensorMessageTime + robotBom.getSensorMessageDelayMs() <= System.currentTimeMillis();
+        return lastSensorMessageTime + robotConfig.getSensorMessageDelayMs() <= System.currentTimeMillis();
     }
 
     private void checkSensorUpdate() {
@@ -301,8 +302,22 @@ public class RemoteRobot extends Thread {
         return ready;
     }
 
-    public void setColourConfig(RobotColourConfigFileBom colourConfig) {
-        this.colourConfig = colourConfig;
+    public void handleVictory() {
+        stopTank();
+        logback.info("I WON! \\o/");
+        Sound.playSample(new File(robotConfig.getSoundVictoryFilepath()), robotConfig.getEndGameVolume());
+    }
+
+    public void handleDefeat() {
+        stopTank();
+        logback.info("I LOST... :(");
+        Sound.playSample(new File(robotConfig.getSoundDefeatFilepath()), robotConfig.getEndGameVolume());
+    }
+
+    public void handleDraw() {
+        stopTank();
+        logback.info("Nobody won this time :|");
+        Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
     }
 
     private class EscapeListener implements KeyListener {

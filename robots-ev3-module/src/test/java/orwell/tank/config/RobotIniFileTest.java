@@ -40,7 +40,7 @@ public class RobotIniFileTest {
             assertEquals(10000, fileBom.getProxyPullPort());
             assertEquals("192.168.0.16", fileBom.getProxyIp());
             assertEquals(50, fileBom.getSensorMessageDelayMs());
-            assertEquals(30, fileBom.getVolume());
+            assertEquals(30, fileBom.getGlobalVolume());
         } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }

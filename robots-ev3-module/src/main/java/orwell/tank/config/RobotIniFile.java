@@ -31,9 +31,13 @@ public class RobotIniFile {
     private static final String PULL_PORT_OPTION_NAME = "pullPort";
     private static final String IP_OPTION_NAME = "ip";
     private static final String SENSOR_DELAY_OPTION_NAME = "sensorMessageDelayMs";
-    private static final String VOLUME_OPTION_NAME = "volume";
-    private static final String MISC_SECTION_NAME = "misc";
     private static final String COLOR_SECTION_NAME = "colorSensor";
+    private static final String SOUNDS_SECTION_NAME = "sounds";
+    private static final String GLOBAL_VOLUME_OPTION_NAME = "globalVolume";
+    private static final String ENDGAME_VOLUME_OPTION_NAME = "endgameVolume";
+    private static final String VICT_FILEPATH_OPTION_NAME = "victoryFilepath";
+    private static final String DEAF_FILEPATH_OPTION_NAME = "defeatFilepath";
+    private static final String DRAW_FILEPATH_OPTION_NAME = "drawFilepath";
 
     private final Wini iniFile;
 
@@ -61,8 +65,12 @@ public class RobotIniFile {
         robotFileBom.setProxyPullPort(getProxyPullPort());
         robotFileBom.setProxyIp(getProxyIp());
         robotFileBom.setSensorMessageDelayMs(getSensorMessageDelay());
-        robotFileBom.setVolume(this.getVolume());
         robotFileBom.setColorSensorPort(charToPort(getColorSensorPort()));
+        robotFileBom.setGlobalVolume(getGlobalVolume());
+        robotFileBom.setEndGameVolume(getEndgameVolume());
+        robotFileBom.setSoundVictoryFilepath(getVictoryFilepath());
+        robotFileBom.setSoundDefeatFilepath(getDefeatFilepath());
+        robotFileBom.setSoundDrawFilepath(getDrawFilepath());
 
         if (!robotFileBom.isModelValid()) {
             throw new FileBomException(robotFileBom);
@@ -70,8 +78,24 @@ public class RobotIniFile {
         return robotFileBom;
     }
 
-    private int getVolume() {
-        return iniFile.get(MISC_SECTION_NAME, VOLUME_OPTION_NAME, int.class);
+    private int getGlobalVolume() {
+        return iniFile.get(SOUNDS_SECTION_NAME, GLOBAL_VOLUME_OPTION_NAME, int.class);
+    }
+
+    private int getEndgameVolume() {
+        return iniFile.get(SOUNDS_SECTION_NAME, ENDGAME_VOLUME_OPTION_NAME, int.class);
+    }
+
+    private String getVictoryFilepath() {
+        return iniFile.get(SOUNDS_SECTION_NAME, VICT_FILEPATH_OPTION_NAME, String.class);
+    }
+
+    private String getDefeatFilepath() {
+        return iniFile.get(SOUNDS_SECTION_NAME, DEAF_FILEPATH_OPTION_NAME, String.class);
+    }
+
+    private String getDrawFilepath() {
+        return iniFile.get(SOUNDS_SECTION_NAME, DRAW_FILEPATH_OPTION_NAME, String.class);
     }
 
     private int getSensorMessageDelay() {

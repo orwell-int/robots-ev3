@@ -8,7 +8,9 @@ public enum EnumColours {
     RED,
     GREEN,
     BLUE,
-    YELLOW;
+    YELLOW,
+    ORANGE,
+    PURPLE;
 
     private static EnumColours[] vals = values();
 

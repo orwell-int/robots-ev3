@@ -17,8 +17,12 @@ public class RobotFileBom {
     private int proxyPullPort = -1;
     private String proxyIp = null;
     private int sensorMessageDelayMs = -1;
-    private int volume = -1;
+    private int globalVolume = -1;
     private Port colorSensorPort = null;
+    private int endGameVolume = -1;
+    private String soundVictoryFilepath = null;
+    private String soundDefeatFilepath = null;
+    private String soundDrawFilepath = null;
 
     public Port getLeftMotorPort() {
         return leftMortPort;
@@ -100,12 +104,12 @@ public class RobotFileBom {
         this.sensorMessageDelayMs = sensorMessageDelayMs;
     }
 
-    public int getVolume() {
-        return volume;
+    public int getGlobalVolume() {
+        return globalVolume;
     }
 
-    public void setVolume(int volume) {
-        this.volume = volume;
+    public void setGlobalVolume(int globalVolume) {
+        this.globalVolume = globalVolume;
     }
 
     public boolean isModelValid() {
@@ -115,10 +119,14 @@ public class RobotFileBom {
                 proxyPullPort != -1 &&
                 proxyPullPort != proxyPushPort &&
                 proxyIp != null &&
-                volume != -1 &&
+                globalVolume != -1 &&
                 sensorMessageDelayMs != -1 &&
                 leftMortPort != rightMotorPort &&
-                areSensorsPortsDifferent();
+                areSensorsPortsDifferent() &&
+                endGameVolume != -1 &&
+                soundDefeatFilepath != null &&
+                soundDrawFilepath != null &&
+                soundVictoryFilepath != null;
     }
 
     private boolean areSensorsPortsDifferent() {
@@ -132,5 +140,37 @@ public class RobotFileBom {
 
     public void setColorSensorPort(Port colorSensorPort) {
         this.colorSensorPort = colorSensorPort;
+    }
+
+    public String getSoundVictoryFilepath() {
+        return soundVictoryFilepath;
+    }
+
+    public void setSoundVictoryFilepath(String soundVictoryFilepath) {
+        this.soundVictoryFilepath = soundVictoryFilepath;
+    }
+
+    public String getSoundDefeatFilepath() {
+        return soundDefeatFilepath;
+    }
+
+    public void setSoundDefeatFilepath(String soundDefeatFilepath) {
+        this.soundDefeatFilepath = soundDefeatFilepath;
+    }
+
+    public String getSoundDrawFilepath() {
+        return soundDrawFilepath;
+    }
+
+    public void setSoundDrawFilepath(String soundDrawFilepath) {
+        this.soundDrawFilepath = soundDrawFilepath;
+    }
+
+    public int getEndGameVolume() {
+        return endGameVolume;
+    }
+
+    public void setEndGameVolume(int endGameVolume) {
+        this.endGameVolume = endGameVolume;
     }
 }

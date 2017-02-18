@@ -24,13 +24,16 @@ public class Cli {
 
         // Add a new optionGroup to make --file
         final Option optionRobotIniFile = new Option("rf", "robotfile", true, "filepath for external robot configuration file");
-        final Option optionColourIniFile = new Option("cf", "colourfile", true, "filepath for external colour configuration file");
         final OptionGroup optionGroup = new OptionGroup();
         optionGroup.setRequired(false);
         optionGroup.addOption(optionRobotIniFile);
-        optionGroup.addOption(optionColourIniFile);
-
         options.addOptionGroup(optionGroup);
+
+        final Option optionColourIniFile = new Option("cf", "colourfile", true, "filepath for external colour configuration file");
+        final OptionGroup optionGroup2 = new OptionGroup();
+        optionGroup2.setRequired(true);
+        optionGroup2.addOption(optionColourIniFile);
+        options.addOptionGroup(optionGroup2);
     }
 
     /**
