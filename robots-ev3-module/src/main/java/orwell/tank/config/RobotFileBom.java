@@ -13,9 +13,6 @@ public class RobotFileBom {
     private boolean isRightMotorInverted = false;
     private Port rfidSensorPort = null;
     private Port usSensorPort = null;
-    private int proxyPushPort = -1;
-    private int proxyPullPort = -1;
-    private String proxyIp = null;
     private int sensorMessageDelayMs = -1;
     private int globalVolume = -1;
     private Port colorSensorPort = null;
@@ -23,6 +20,10 @@ public class RobotFileBom {
     private String soundVictoryFilepath = null;
     private String soundDefeatFilepath = null;
     private String soundDrawFilepath = null;
+    private static final int DEFAULT_BROADCAST_PORT = 9081;
+    private static final int DEFAULT_BROADCAST_TIMEOUT = 1000;
+    private int broadcastPort = DEFAULT_BROADCAST_PORT;
+    private int broadcastTimeout = DEFAULT_BROADCAST_TIMEOUT;
 
     public Port getLeftMotorPort() {
         return leftMortPort;
@@ -72,30 +73,6 @@ public class RobotFileBom {
         this.usSensorPort = usSensorPort;
     }
 
-    public int getProxyPushPort() {
-        return proxyPushPort;
-    }
-
-    public void setProxyPushPort(int proxyPushPort) {
-        this.proxyPushPort = proxyPushPort;
-    }
-
-    public int getProxyPullPort() {
-        return proxyPullPort;
-    }
-
-    public void setProxyPullPort(int proxyPullPort) {
-        this.proxyPullPort = proxyPullPort;
-    }
-
-    public String getProxyIp() {
-        return proxyIp;
-    }
-
-    public void setProxyIp(String proxyIp) {
-        this.proxyIp = proxyIp;
-    }
-
     public int getSensorMessageDelayMs() {
         return sensorMessageDelayMs;
     }
@@ -115,10 +92,6 @@ public class RobotFileBom {
     public boolean isModelValid() {
         return leftMortPort != null &&
                 rightMotorPort != null &&
-                proxyPushPort != -1 &&
-                proxyPullPort != -1 &&
-                proxyPullPort != proxyPushPort &&
-                proxyIp != null &&
                 globalVolume != -1 &&
                 sensorMessageDelayMs != -1 &&
                 leftMortPort != rightMotorPort &&
@@ -172,5 +145,21 @@ public class RobotFileBom {
 
     public void setEndGameVolume(int endGameVolume) {
         this.endGameVolume = endGameVolume;
+    }
+
+    public int getBroadcastPort() {
+        return broadcastPort;
+    }
+
+    public void setBroadcastPort(int broadcastPort) {
+        this.broadcastPort = broadcastPort;
+    }
+
+    public int getBroadcastTimeout() {
+        return broadcastTimeout;
+    }
+
+    public void setBroadcastTimeout(int broadcastTimeout) {
+        this.broadcastTimeout = broadcastTimeout;
     }
 }

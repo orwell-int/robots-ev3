@@ -5,7 +5,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <debug>false</debug>
-        <brick.host>192.168.0.17</brick.host>
+        <brick.host>192.168.2.33</brick.host>
         <brick.home>/home/root</brick.home>
         <brick.user>root</brick.user>
         <brick.debug.port>4000</brick.debug.port>
@@ -140,12 +140,12 @@
                                     <equals arg1="${debug}" arg2="true"/>
                                     <then>
                                         <sshexec host="${brick.host}" trust="yes" username="${brick.user}" password=""
-                                                 command="jrun -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${brick.debug.port},suspend=y -cp ${brick.home}/${project.build.finalName}-jar-with-dependencies.jar ${project.main.class} -f tank.orwell.tank.config.ini">
+                                                 command="jrun -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${brick.debug.port},suspend=y -cp ${brick.home}/${project.build.finalName}-jar-with-dependencies.jar ${project.main.class} -rf tank.config.ini -cf colours.config.ini">
                                         </sshexec>
                                     </then>
                                     <else>
                                         <sshexec host="${brick.host}" trust="yes" username="${brick.user}" password=""
-                                                 command="jrun -cp ${brick.home}/${project.build.finalName}-jar-with-dependencies.jar ${project.main.class} -f tank.orwell.tank.config.ini">
+                                                 command="jrun -cp ${brick.home}/${project.build.finalName}-jar-with-dependencies.jar ${project.main.class} -rf tank.config.ini -cf colours.config.ini">
                                         </sshexec>
                                     </else>
                                 </if>

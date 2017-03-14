@@ -36,9 +36,8 @@ public class RobotIniFileTest {
             assertTrue(fileBom.isRightMotorInverted());
             assertEquals(SensorPort.S1, fileBom.getRfidSensorPort());
             assertEquals(SensorPort.S4, fileBom.getUsSensorPort());
-            assertEquals(10001, fileBom.getProxyPushPort());
-            assertEquals(10000, fileBom.getProxyPullPort());
-            assertEquals("192.168.0.16", fileBom.getProxyIp());
+            assertEquals(1234, fileBom.getBroadcastPort());
+            assertEquals(9876, fileBom.getBroadcastTimeout());
             assertEquals(50, fileBom.getSensorMessageDelayMs());
             assertEquals(30, fileBom.getGlobalVolume());
         } catch (ExceptionInInitializerError | NoClassDefFoundError e) {

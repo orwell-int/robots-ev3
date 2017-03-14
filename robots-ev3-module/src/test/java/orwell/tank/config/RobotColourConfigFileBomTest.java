@@ -9,8 +9,6 @@ import orwell.tank.hardware.Colours.RgbColour;
 import orwell.tank.hardware.Colours.RgbColourSigma;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Michaël Ludmann on 05/02/17.

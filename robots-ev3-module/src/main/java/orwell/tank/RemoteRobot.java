@@ -8,9 +8,12 @@ import lejos.mf.common.UnitMessageType;
 import lejos.mf.common.exception.UnitMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeromq.ZMQException;
 import orwell.tank.actions.IInputAction;
 import orwell.tank.actions.StopTank;
 import orwell.tank.communication.RobotMessageBroker;
+import orwell.tank.communication.UdpProxyFinder;
+import orwell.tank.communication.UdpProxyFinderFactory;
 import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.config.RobotFileBom;
 import orwell.tank.exception.ParseIniException;
@@ -28,25 +31,22 @@ import java.util.ArrayList;
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
     private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 3;
-    private final RobotMessageBroker robotMessageBroker;
+    private RobotMessageBroker robotMessageBroker;
     private final RobotFileBom robotConfig;
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
     private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
-    private boolean isListening = false;
     private EV3LED led;
     private Tracks tracks;
     private boolean ready = false;
     private long lastSensorMessageTime = System.currentTimeMillis();
     private RobotColourConfigFileBom colourConfig;
+    private SimpleKeyListener simpleKeyListener = new SimpleKeyListener();
 
     public RemoteRobot(RobotFileBom robotConfig, RobotColourConfigFileBom colourConfig) {
         this.robotConfig = robotConfig;
         this.colourConfig = colourConfig;
-        robotMessageBroker = new RobotMessageBroker(robotConfig.getProxyIp(),
-                robotConfig.getProxyPushPort(), robotConfig.getProxyPullPort());
         initHardware();
-        Button.ESCAPE.addKeyListener(new EscapeListener());
     }
 
     public static void main(String[] args) throws IOException {
@@ -129,8 +129,16 @@ public class RemoteRobot extends Thread {
     public void run() {
         logback.info("Start running RemoteRobot");
         try {
-            connect();
-            startReceivingMessagesLoop();
+            while (!simpleKeyListener.wasKeyPressed()) {
+                createRobotMessageBrokerFromUdpBroadcast();
+                try {
+                    connect();
+                    startReceivingMessagesLoop();
+                } catch (ZMQException e) {
+                    logback.warn("ZMQ error (clear connection): " + e);
+                    robotMessageBroker = null;
+                }
+            }
         } catch (Exception e) {
             logback.error(e.getMessage());
         }
@@ -138,21 +146,31 @@ public class RemoteRobot extends Thread {
         Thread.yield();
     }
 
-    public EnumConnectionState connect() {
+    public void createRobotMessageBrokerFromUdpBroadcast() {
+        if (null == robotMessageBroker) {
+            UdpProxyFinder udpProxyFinder = UdpProxyFinderFactory.fromParameters(
+                    robotConfig.getBroadcastPort(),
+                    robotConfig.getBroadcastTimeout(),
+                    simpleKeyListener);
+            udpProxyFinder.broadcastAndGetServerAddress();
+            logback.info("PULL: " + udpProxyFinder.getPullAddress() + " PUSH: " + udpProxyFinder.getPushAddress());
+            robotMessageBroker = new RobotMessageBroker(
+                    udpProxyFinder.getPushAddress(), udpProxyFinder.getPullAddress());
+        }
+    }
+
+    public void connect() {
         robotMessageBroker.connect();
-        return getConnectionState();
     }
 
     private void startReceivingMessagesLoop() {
         try {
-            isListening = true;
             establishFirstConnection();
             while (isRobotListeningAndConnected()) {
                 listenForNewMessage();
                 sendMessageOnSensorUpdate();
                 sleepBetweenMessages();
             }
-            isListening = false;
         } catch (Exception e) {
             logback.error("Exception during RemoteRobot run: " + e.getStackTrace());
         }
@@ -210,11 +228,11 @@ public class RemoteRobot extends Thread {
     }
 
     private boolean isRobotListeningAndNotConnected() {
-        return isListening && !isConnected();
+        return !simpleKeyListener.wasKeyPressed() && !isConnected();
     }
 
     private boolean isRobotListeningAndConnected() {
-        return isListening && isConnected();
+        return !simpleKeyListener.wasKeyPressed() && isConnected();
     }
 
     private boolean isConnected() {
@@ -240,7 +258,8 @@ public class RemoteRobot extends Thread {
     }
 
     private void dispose() {
-        Sound.buzz();
+        Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
+
         stopRobotAndDisconnect();
         closeHardware();
         ready = false;
@@ -318,16 +337,5 @@ public class RemoteRobot extends Thread {
         stopTank();
         logback.info("Nobody won this time :|");
         Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
-    }
-
-    private class EscapeListener implements KeyListener {
-
-        public void keyPressed(Key k) {
-            isListening = false;
-        }
-
-        public void keyReleased(Key k) {
-            isListening = false;
-        }
     }
 }

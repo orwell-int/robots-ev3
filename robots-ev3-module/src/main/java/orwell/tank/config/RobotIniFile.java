@@ -27,9 +27,6 @@ public class RobotIniFile {
     private static final String US_SECTION_NAME = "usSensor";
     private static final String INVERTED_OPTION_NAME = "isInverted";
     private static final String PROXY_SECTION_NAME = "proxy";
-    private static final String PUSH_PORT_OPTION_NAME = "pushPort";
-    private static final String PULL_PORT_OPTION_NAME = "pullPort";
-    private static final String IP_OPTION_NAME = "ip";
     private static final String SENSOR_DELAY_OPTION_NAME = "sensorMessageDelayMs";
     private static final String COLOR_SECTION_NAME = "colorSensor";
     private static final String SOUNDS_SECTION_NAME = "sounds";
@@ -38,6 +35,8 @@ public class RobotIniFile {
     private static final String VICT_FILEPATH_OPTION_NAME = "victoryFilepath";
     private static final String DEAF_FILEPATH_OPTION_NAME = "defeatFilepath";
     private static final String DRAW_FILEPATH_OPTION_NAME = "drawFilepath";
+    private static final String BROADCAST_PORT_OPTION_NAME = "broadcastPort";
+    private static final String BROADCAST_TIMEOUT_OPTION_NAME = "broadcastTimeout";
 
     private final Wini iniFile;
 
@@ -61,9 +60,6 @@ public class RobotIniFile {
         robotFileBom.setIsRightMotorInverted(getIsRightMotorInverted());
         robotFileBom.setRfidSensorPort(charToPort(getRfidSensorPort()));
         robotFileBom.setUsSensorPort(charToPort(getUsSensorPort()));
-        robotFileBom.setProxyPushPort(getProxyPushPort());
-        robotFileBom.setProxyPullPort(getProxyPullPort());
-        robotFileBom.setProxyIp(getProxyIp());
         robotFileBom.setSensorMessageDelayMs(getSensorMessageDelay());
         robotFileBom.setColorSensorPort(charToPort(getColorSensorPort()));
         robotFileBom.setGlobalVolume(getGlobalVolume());
@@ -71,11 +67,21 @@ public class RobotIniFile {
         robotFileBom.setSoundVictoryFilepath(getVictoryFilepath());
         robotFileBom.setSoundDefeatFilepath(getDefeatFilepath());
         robotFileBom.setSoundDrawFilepath(getDrawFilepath());
+        robotFileBom.setBroadcastPort(getBroadcastPort());
+        robotFileBom.setBroadcastTimeout(getBroadcastTimeout());
 
         if (!robotFileBom.isModelValid()) {
             throw new FileBomException(robotFileBom);
         }
         return robotFileBom;
+    }
+
+    private int getBroadcastPort() {
+        return iniFile.get(PROXY_SECTION_NAME, BROADCAST_PORT_OPTION_NAME, int.class);
+    }
+
+    private int getBroadcastTimeout() {
+        return iniFile.get(PROXY_SECTION_NAME, BROADCAST_TIMEOUT_OPTION_NAME, int.class);
     }
 
     private int getGlobalVolume() {
@@ -100,18 +106,6 @@ public class RobotIniFile {
 
     private int getSensorMessageDelay() {
         return iniFile.get(PROXY_SECTION_NAME, SENSOR_DELAY_OPTION_NAME, int.class);
-    }
-
-    private String getProxyIp() {
-        return iniFile.get(PROXY_SECTION_NAME, IP_OPTION_NAME, String.class);
-    }
-
-    private int getProxyPushPort() {
-        return iniFile.get(PROXY_SECTION_NAME, PUSH_PORT_OPTION_NAME, int.class);
-    }
-
-    private int getProxyPullPort() {
-        return iniFile.get(PROXY_SECTION_NAME, PULL_PORT_OPTION_NAME, int.class);
     }
 
     private boolean getIsLeftMotorInverted() {
