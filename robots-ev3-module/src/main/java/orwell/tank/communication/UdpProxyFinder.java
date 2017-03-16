@@ -10,12 +10,12 @@ import java.net.*;
 import java.util.Enumeration;
 
 public class UdpProxyFinder {
+    public static final String DISCOVER_PROXY_ROBOTS_REQUEST = "DISCOVER_PROXY-ROBOTS_REQUEST";
     private final static Logger logback = LoggerFactory.getLogger(UdpProxyFinder.class);
     private final int broadcastPort;
     private final int receiverBufferSize = 512;
     private final DatagramSocket datagramSocket;
     private final UdpBroadcastDataDecoder udpBroadcastDataDecoder;
-    private int maxAttemptsNumber;
     private int attemptsPerformed = 0;
     private String pushAddress;
     private String pullAddress;
@@ -50,7 +50,7 @@ public class UdpProxyFinder {
         try {
             datagramSocket.setBroadcast(true);
             while (shouldTryToFindBeacon()) {
-                logback.info("Trying to find UDP beacon, attempt [" + (attemptsPerformed + 1) + "]");
+                logback.info("Trying to find UDP beacon on port " + broadcastPort + ", attempt [" + (attemptsPerformed + 1) + "]");
                 // Broadcast the message over all the network interfaces
                 final Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
 
@@ -79,6 +79,7 @@ public class UdpProxyFinder {
         }
 
         for (final InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
+            logback.info("interface address = " + interfaceAddress.getAddress() + " ; broadcast = " + interfaceAddress.getBroadcast());
             final InetAddress broadcastAddress = BroadcastAddress.getBroadcastAddress(interfaceAddress.getAddress(), interfaceAddress.getBroadcast());
             if (null != broadcastAddress) {
                 logback.info("Trying to send broadcast package on interface: " + networkInterface.getDisplayName());
@@ -91,7 +92,7 @@ public class UdpProxyFinder {
         try {
             final String broadcastAddrString = broadcastAddress.getHostAddress();
 
-            final byte[] requestBytes = "DISCOVER_PROXY-ROBOTS_REQUEST".getBytes();
+            final byte[] requestBytes = DISCOVER_PROXY_ROBOTS_REQUEST.getBytes();
             //final DatagramPacket datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, broadcastAddress, broadcastPort);
             final DatagramPacket datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(broadcastAddrString), broadcastPort);
             datagramSocket.send(datagramPacket);

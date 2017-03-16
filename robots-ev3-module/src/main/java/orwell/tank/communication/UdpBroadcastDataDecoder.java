@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class UdpBroadcastDataDecoder {
     private final static Logger logback = LoggerFactory.getLogger(UdpBroadcastDataDecoder.class);
-    private static final String PROXY_IP_FIELD_NAME = "*";
+    private static final String PROXY_IP_FIELD_NAME = Character.toString('*');
     private boolean isPacketDataCorrect;
     private String proxyRobotsIp;
     private String partialPusherAddress;
@@ -36,7 +36,7 @@ public class UdpBroadcastDataDecoder {
 
     /**
      * @param packetData data received from the server's beacon. Example:
-     *                   0xA214tcp://*:100010xA313tcp://*:100000xA4
+     *                   0xA213tcp://*:100010xA313tcp://*:100000xA4
      *                   |   | |            |   | |            |
      *                   |   | |            |   | |            checkByteETX (hex value on one byte)
      *                   |   | |            |   | address of puller (i.e. pusher address on proxy side)
@@ -79,8 +79,8 @@ public class UdpBroadcastDataDecoder {
     }
 
     private void buildFullAddresses() {
-        pullAddress = partialPullerAddress.replaceAll(PROXY_IP_FIELD_NAME, proxyRobotsIp);
-        pushAddress = partialPusherAddress.replaceAll(PROXY_IP_FIELD_NAME, proxyRobotsIp);
+        pullAddress = partialPullerAddress.replace(PROXY_IP_FIELD_NAME, proxyRobotsIp);
+        pushAddress = partialPusherAddress.replace(PROXY_IP_FIELD_NAME, proxyRobotsIp);
         logback.info(toString());
     }
 
@@ -108,7 +108,7 @@ public class UdpBroadcastDataDecoder {
     @Override
     public String toString() {
         return "UdpBroadcastDataDecoder values decoded: " +
-                "[ProxyRobotsIp]     " + proxyRobotsIp + " "+
+                "[ProxyRobotsIp]     " + proxyRobotsIp + " " +
                 "[PushAddress]    " + pushAddress + " " +
                 "[PullAddress] " + pullAddress;
     }
