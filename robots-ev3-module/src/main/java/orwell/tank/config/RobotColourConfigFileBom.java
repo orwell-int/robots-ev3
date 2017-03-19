@@ -7,9 +7,6 @@ import orwell.tank.hardware.Colours.RgbColourSigma;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Michaël Ludmann on 05/02/17.
- */
 public class RobotColourConfigFileBom {
     private Map<EnumColours, RgbColour> rgbColourMap = new HashMap<>();
     private Map<EnumColours, RgbColourSigma> rgbColourSigmaMap = new HashMap<>();

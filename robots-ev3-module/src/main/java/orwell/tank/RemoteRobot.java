@@ -153,7 +153,6 @@ public class RemoteRobot extends Thread {
                     robotConfig.getBroadcastTimeout(),
                     simpleKeyListener);
             udpProxyFinder.broadcastAndGetServerAddress();
-            logback.info("PULL: " + udpProxyFinder.getPullAddress() + " PUSH: " + udpProxyFinder.getPushAddress());
             robotMessageBroker = new RobotMessageBroker(
                     udpProxyFinder.getPushAddress(), udpProxyFinder.getPullAddress());
         }
@@ -337,5 +336,10 @@ public class RemoteRobot extends Thread {
         stopTank();
         logback.info("Nobody won this time :|");
         Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
+    }
+
+    public void handleWait() {
+        stopTank();
+        logback.info("Waiting for the game to start.");
     }
 }

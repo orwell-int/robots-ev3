@@ -32,5 +32,8 @@ public class GameState implements IInputAction {
         else if (payload != null && payload.equalsIgnoreCase("draw")) {
             remoteRobot.handleDraw();
         }
+        else if (payload != null && payload.equalsIgnoreCase("wait")) {
+            remoteRobot.handleWait();
+        }
     }
 }

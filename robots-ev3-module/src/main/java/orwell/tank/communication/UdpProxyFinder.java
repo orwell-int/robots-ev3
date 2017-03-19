@@ -89,17 +89,22 @@ public class UdpProxyFinder {
     }
 
     private void sendBroadcastPackageToAddress(final InetAddress broadcastAddress) {
+        final String broadcastAddrString = broadcastAddress.getHostAddress();
+        final byte[] requestBytes = DISCOVER_PROXY_ROBOTS_REQUEST.getBytes();
+        final DatagramPacket datagramPacket;
         try {
-            final String broadcastAddrString = broadcastAddress.getHostAddress();
-
-            final byte[] requestBytes = DISCOVER_PROXY_ROBOTS_REQUEST.getBytes();
-            //final DatagramPacket datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, broadcastAddress, broadcastPort);
-            final DatagramPacket datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(broadcastAddrString), broadcastPort);
-            datagramSocket.send(datagramPacket);
-        } catch (final Exception e) {
+            datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(broadcastAddrString), broadcastPort);
+        } catch (UnknownHostException e) {
             logback.error(e.getMessage());
+            return;
         }
 
+        try {
+            datagramSocket.send(datagramPacket);
+        } catch (final Exception e) {
+            logback.error("Address " + datagramPacket.getAddress() + " Port " + datagramPacket.getPort() + " SocketAddr " + datagramPacket.getSocketAddress() + " Data " + datagramPacket.getData());
+            return;
+        }
         logback.info("Request packet sent to: " + broadcastAddress.getHostAddress());
     }
 
