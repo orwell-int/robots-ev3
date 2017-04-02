@@ -62,8 +62,17 @@ Run without maven, once you have the jar
 ----------------------------------------
 You can also run the jar created by the install to start the application from the command line on the robot itself (through ssh)
 Provided you already copied the tank.orwell.tank.config.ini and the jar on the target
+
+For your very first run, you first need to do a colour calibration:
 ```
-jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot -f tank.orwell.tank.config.ini
+jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.ColourSampler -rf tank.config.ini -cf colours.config.ini
+```
+
+This will always generate a full colours.config.ini file that is dependent on your hardware setup.
+Then you can start the main ORWELL program:
+
+```
+jrun -cp robots-ev3-module-0.1.0-jar-with-dependencies.jar orwell.tank.RemoteRobot -rf tank.config.ini -cf colours.config.ini
 ```
 
 Local setup for coverage with coveralls
