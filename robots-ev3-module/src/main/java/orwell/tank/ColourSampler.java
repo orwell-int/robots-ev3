@@ -10,8 +10,8 @@ import lejos.hardware.sensor.SensorMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import orwell.tank.config.RobotFileBom;
-import orwell.tank.exception.ParseIniException;
 import orwell.tank.exception.FileBomException;
+import orwell.tank.exception.ParseIniException;
 import orwell.tank.hardware.Colours.EnumColours;
 import utils.Cli;
 import utils.IniFiles;
@@ -24,16 +24,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
-/**
- * Created by Michaël Ludmann on 27/11/16.
- */
 public class ColourSampler extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(ColourSampler.class);
     private static final long THREAD_SLEEP_BETWEEN_SAMPLES_MS = 1;
     private static final String SAMPLES_FILE_PATH = "/home/root/samples.csv";
     private static final String COLOURS_CONFIG_FILE_PATH = "/home/root/colours.config.ini";
     private static final float SIGMA_FACTOR = 5;
-    private final RobotFileBom robotBom;
+    private static final int TOTAL_SAMPLE_SIZE = 20000;
     private boolean isListening = false;
     private boolean ready = false;
     private EV3ColorSensor colourSensor;
@@ -44,7 +41,6 @@ public class ColourSampler extends Thread {
     private ArrayList<Float> redArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
     private ArrayList<Float> greenArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
     private ArrayList<Float> blueArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
-    private static final int TOTAL_SAMPLE_SIZE = 20000;
     private SensorMode sensorMode;
     private float redAverage;
     private float greenAverage;
@@ -54,7 +50,6 @@ public class ColourSampler extends Thread {
     private float blueSigma;
 
     public ColourSampler(RobotFileBom robotBom) {
-        this.robotBom = robotBom;
         initColour(robotBom.getColorSensorPort());
         initFiles();
         ready = true;
@@ -95,7 +90,7 @@ public class ColourSampler extends Thread {
 
     private void deleteAndCreateFile(String samplesFilePath) {
         File file = new File(samplesFilePath);
-        if(file.exists()) {
+        if (file.exists()) {
             file.delete();
         }
         try {
@@ -162,7 +157,7 @@ public class ColourSampler extends Thread {
                 logback.error(e.getMessage());
             }
 
-            if(redArray.size() >= TOTAL_SAMPLE_SIZE) {
+            if (redArray.size() >= TOTAL_SAMPLE_SIZE) {
                 logback.info("Total sample size reached");
                 finalizeColour();
             }
@@ -172,7 +167,7 @@ public class ColourSampler extends Thread {
     private void finalizeColour() {
         registerMode = EnumRegisterMode.OFF;
 
-        if(!redArray.isEmpty() && !greenArray.isEmpty() && !blueArray.isEmpty()) {
+        if (!redArray.isEmpty() && !greenArray.isEmpty() && !blueArray.isEmpty()) {
             computeAverages();
             computeSigmas();
             redArray.clear();
@@ -195,14 +190,14 @@ public class ColourSampler extends Thread {
 
     private void writeColorConfig() {
         String colorLine = "[" + colorMode + "]" + System.lineSeparator();
-        String averagesLines = 
-                    "averageRed = " + redAverage + System.lineSeparator() +
-                    "averageGreen = " + greenAverage + System.lineSeparator() +
-                    "averageBlue = " + blueAverage + System.lineSeparator();
+        String averagesLines =
+                "averageRed = " + redAverage + System.lineSeparator() +
+                        "averageGreen = " + greenAverage + System.lineSeparator() +
+                        "averageBlue = " + blueAverage + System.lineSeparator();
         String sigmasLines =
                 "sigmaRed = " + redSigma + System.lineSeparator() +
-                "sigmaGreen = " + greenSigma + System.lineSeparator() +
-                "sigmaBlue = " + blueSigma + System.lineSeparator();
+                        "sigmaGreen = " + greenSigma + System.lineSeparator() +
+                        "sigmaBlue = " + blueSigma + System.lineSeparator();
         try {
             Files.write(coloursConfigPath, (colorLine + averagesLines + sigmasLines).getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
@@ -236,9 +231,9 @@ public class ColourSampler extends Thread {
     private float computeSigma(ArrayList<Float> array, float average) {
         float sum = 0f;
         for (Float value : array) {
-            sum+= Math.pow(value - average, 2);
+            sum += Math.pow(value - average, 2);
         }
-        return (float) Math.sqrt(sum/array.size());
+        return (float) Math.sqrt(sum / array.size());
     }
 
     private void computeAverages() {
@@ -250,9 +245,9 @@ public class ColourSampler extends Thread {
     private float computeAverage(ArrayList<Float> array) {
         float sum = 0f;
         for (Float value : array) {
-            sum+= value;
+            sum += value;
         }
-        return sum/array.size();
+        return sum / array.size();
     }
 
     private void sleepBetweenSamples() {

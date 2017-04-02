@@ -1,31 +1,25 @@
 package orwell.tank.hardware;
 
-import lejos.hardware.port.I2CException;
 import lejos.hardware.port.Port;
-import lejos.hardware.sensor.NXTUltrasonicSensor;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.mf.common.UnitMessageType;
 import lejos.robotics.SampleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by Michaël Ludmann on 18/09/16.
- */
-public class UsRadarSensor extends NXTUltrasonicSensor implements ISensor<Float> {
+public class UsRadarSensor extends EV3UltrasonicSensor implements ISensor<Integer> {
+    public static final int METER_TO_CM_FACTOR = 100;
     private final static Logger logback = LoggerFactory.getLogger(UsRadarSensor.class);
-    private static final long READ_VALUE_INTERVAL_MS = 50;
-    private SensorMeasure<Float> sensorMeasure;
-    private int i2cErrorCount;
+    private static final long READ_VALUE_INTERVAL_MS = 100;
+    private SensorMeasure<Integer> sensorMeasure;
 
     public UsRadarSensor(Port port) {
         super(port);
-        setRetryCount(5);
-        i2cErrorCount = 0;
         sensorMeasure = new SensorMeasure<>();
     }
 
     @Override
-    public Float get() {
+    public Integer get() {
         return sensorMeasure.get();
     }
 
@@ -33,13 +27,15 @@ public class UsRadarSensor extends NXTUltrasonicSensor implements ISensor<Float>
     public void readValue() {
         SampleProvider sampleProvider = getDistanceMode();
         float samples[] = new float[sampleProvider.sampleSize()];
-        try {
-            sampleProvider.fetchSample(samples, 0);
-            sensorMeasure.set(samples[0]);
-        } catch (I2CException e) {
-            i2cErrorCount++;
-            logback.error("US I2C #" + i2cErrorCount + " read error: " + e.getMessage());
+        sampleProvider.fetchSample(samples, 0);
+        float value = samples[0];
+        int valueInt;
+        if (value == Float.MAX_VALUE) {
+            valueInt = Integer.MAX_VALUE;
+        } else {
+            valueInt = Math.round(value * METER_TO_CM_FACTOR);
         }
+        sensorMeasure.set(valueInt);
     }
 
     @Override

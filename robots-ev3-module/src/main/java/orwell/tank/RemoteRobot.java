@@ -1,6 +1,7 @@
 package orwell.tank;
 
-import lejos.hardware.*;
+import lejos.hardware.DeviceException;
+import lejos.hardware.Sound;
 import lejos.hardware.port.Port;
 import lejos.internal.ev3.EV3LED;
 import lejos.mf.common.UnitMessage;
@@ -16,8 +17,8 @@ import orwell.tank.communication.UdpProxyFinder;
 import orwell.tank.communication.UdpProxyFinderFactory;
 import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.config.RobotFileBom;
-import orwell.tank.exception.ParseIniException;
 import orwell.tank.exception.FileBomException;
+import orwell.tank.exception.ParseIniException;
 import orwell.tank.hardware.*;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
@@ -31,8 +32,8 @@ import java.util.ArrayList;
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
     private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 3;
-    private RobotMessageBroker robotMessageBroker;
     private final RobotFileBom robotConfig;
+    private RobotMessageBroker robotMessageBroker;
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
     private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
@@ -120,7 +121,7 @@ public class RemoteRobot extends Thread {
             logback.info("No US Sensor configured");
             return;
         }
-        ThreadedSensor<Float> usThreadedSensor = new ThreadedSensor<>(new UsRadarSensor(usPort));
+        ThreadedSensor<Integer> usThreadedSensor = new ThreadedSensor<>(new UsRadarSensor(usPort));
         threadedSensorList.add(usThreadedSensor);
         usThreadedSensor.start();
         logback.info("US init Ok");
