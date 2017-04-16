@@ -1,9 +1,8 @@
-package hardware;
+package orwell.tank.hardware;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import orwell.tank.hardware.SensorMeasure;
 
 import static org.junit.Assert.*;
 
@@ -60,7 +59,7 @@ public class SensorMeasureTest {
         public SensorMeasure<Float> sensorMeasure;
 
         public ThreadTest() {
-            sensorMeasure = new SensorMeasure<Float>();
+            sensorMeasure = new SensorMeasure<>();
         }
 
 

@@ -2,19 +2,14 @@ package orwell.tank.messaging;
 
 import lejos.mf.common.UnitMessage;
 import lejos.mf.common.UnitMessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lejos.mf.common.constants.UnitMessagePayloadHeaders;
 import orwell.tank.actions.*;
 import utils.Splice;
 import utils.Split;
 
 import java.util.List;
 
-/**
- * Created by Michaël Ludmann on 10/07/16.
- */
 public class UnitMessageDecoderFactory {
-    private final static Logger logback = LoggerFactory.getLogger(UnitMessageDecoderFactory.class);
 
     public static IInputAction parseFrom(UnitMessage message) {
         if (isNotHandled(message)) {
@@ -38,15 +33,15 @@ public class UnitMessageDecoderFactory {
         }
 
         switch (payloadHeader) {
-            case "stop":
+            case UnitMessagePayloadHeaders.Stop:
                 return new StopTank(payloadBody);
-            case "stopPrg":
+            case UnitMessagePayloadHeaders.StopProgram:
                 return new StopProgram(payloadBody);
-            case "move":
+            case UnitMessagePayloadHeaders.MoveAction:
                 return new Move(payloadBody);
-            case "fire":
+            case UnitMessagePayloadHeaders.FireAction:
                 return new Fire(payloadBody);
-            case "game":
+            case UnitMessagePayloadHeaders.GameState:
                 return new GameState(payloadBody);
             default:
                 return new NotHandled(payloadBody);

@@ -6,39 +6,25 @@ import lejos.mf.common.exception.UnitMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMQException;
 
-/**
- * Created by Michaël Ludmann on 03/07/16.
- */
 public class RobotMessageBroker {
     private final static Logger logback = LoggerFactory.getLogger(RobotMessageBroker.class);
+    private static final int ERROR_NUMBER = 42;
 
-    private final int pushPort;
-    private final int pullPort;
-    private final String proxyIpAddress;
     private ZMQ.Context context;
     private ZMQ.Socket sender;
     private ZMQ.Socket receiver;
-    private String senderConnectAddress;
-    private String receiverConnectAddress;
+    private final String senderConnectAddress;
+    private final String receiverConnectAddress;
 
-    public RobotMessageBroker(String proxyIpAddress, int pushPort, int pullPort) {
-        this.proxyIpAddress = proxyIpAddress;
-        this.pushPort = pushPort;
-        this.pullPort = pullPort;
-
-        setSenderConnectAddress(proxyIpAddress, pushPort);
-        setReceiverConnectAddress(proxyIpAddress, pullPort);
+    public RobotMessageBroker(
+            String senderConnectAddress,
+            String receiverConnectAddress) {
+        this.senderConnectAddress = senderConnectAddress;
+        this.receiverConnectAddress = receiverConnectAddress;
 
         initializeContext();
-    }
-
-    private void setSenderConnectAddress(String proxyIpAddress, int pushPort) {
-        senderConnectAddress = "tcp://" + proxyIpAddress + ":" + pushPort;
-    }
-
-    private void setReceiverConnectAddress(String proxyIpAddress, int pullPort) {
-        receiverConnectAddress = "tcp://" + proxyIpAddress + ":" + pullPort;
     }
 
     private void initializeContext() {
@@ -51,11 +37,10 @@ public class RobotMessageBroker {
     }
 
     public void connect() {
-        logback.info("Robot is starting connection on ports " + pushPort + " (push) and " + pullPort + " (pull)");
+        logback.info("Robot is starting connection on " + senderConnectAddress + " (push) and " + receiverConnectAddress + " (pull)");
         sender.connect(senderConnectAddress);
         receiver.connect(receiverConnectAddress);
-        logback.debug("Robot is ready for incoming proxy connection " + proxyIpAddress + " !");
-
+        logback.debug("Robot is ready for incoming proxy connection !");
     }
 
     public void disconnect() {
@@ -78,6 +63,8 @@ public class RobotMessageBroker {
 
     public void sendMessage(UnitMessage message) {
         logback.debug("Sending " + message.getMessageType() + " message to proxy: " + message.getPayload());
-        sender.send(message.toString());
+        if(!sender.send(message.toString())) {
+            throw new ZMQException("Could not send a message", ERROR_NUMBER);
+        }
     }
 }

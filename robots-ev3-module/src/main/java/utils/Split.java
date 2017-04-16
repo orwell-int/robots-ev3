@@ -20,7 +20,7 @@ public class Split {
      * a list of one byte[] stopping at the first separator)
      */
     public static List<String> split(final char separator, final String input, final int limit) {
-        final List<String> list = new LinkedList<String>();
+        final List<String> list = new LinkedList<>();
         if (0 == limit) {
             return list;
         }

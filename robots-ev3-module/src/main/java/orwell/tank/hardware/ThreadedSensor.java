@@ -4,9 +4,6 @@ import lejos.mf.common.UnitMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by Michaël Ludmann on 06/09/16.
- */
 public class ThreadedSensor<T> implements Runnable {
     private final static Logger logback = LoggerFactory.getLogger(ThreadedSensor.class);
     private final long SENSOR_READ_VALUE_INTERVAL;

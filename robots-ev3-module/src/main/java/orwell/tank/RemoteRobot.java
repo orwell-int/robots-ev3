@@ -1,83 +1,88 @@
 package orwell.tank;
 
-import lejos.hardware.*;
-import lejos.hardware.port.I2CPort;
+import lejos.hardware.DeviceException;
+import lejos.hardware.Sound;
 import lejos.hardware.port.Port;
-import lejos.hardware.sensor.NXTUltrasonicSensor;
 import lejos.internal.ev3.EV3LED;
 import lejos.mf.common.UnitMessage;
 import lejos.mf.common.UnitMessageType;
 import lejos.mf.common.exception.UnitMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeromq.ZMQException;
 import orwell.tank.actions.IInputAction;
 import orwell.tank.actions.StopTank;
 import orwell.tank.communication.RobotMessageBroker;
+import orwell.tank.communication.UdpProxyFinder;
+import orwell.tank.communication.UdpProxyFinderFactory;
+import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.config.RobotFileBom;
-import orwell.tank.config.RobotIniFile;
+import orwell.tank.exception.FileBomException;
 import orwell.tank.exception.ParseIniException;
-import orwell.tank.exception.RobotFileBomException;
-import orwell.tank.hardware.RfidFlagSensor;
-import orwell.tank.hardware.ThreadedSensor;
-import orwell.tank.hardware.Tracks;
+import orwell.tank.hardware.*;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
+import utils.IniFiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
-    private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 5;
-    private static NXTUltrasonicSensor usSensor;
-    private final RobotMessageBroker robotMessageBroker;
-    private final RobotFileBom robotBom;
+    private static final long THREAD_SLEEP_BETWEEN_MSG_MS = 3;
+    private final RobotFileBom robotConfig;
+    private RobotMessageBroker robotMessageBroker;
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
     private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
-    private boolean isListening = false;
     private EV3LED led;
     private Tracks tracks;
     private boolean ready = false;
     private long lastSensorMessageTime = System.currentTimeMillis();
+    private RobotColourConfigFileBom colourConfig;
+    private SimpleEscapeKeyListener simpleEscapeKeyListener = new SimpleEscapeKeyListener();
 
-    public RemoteRobot(RobotFileBom robotBom) {
-        this.robotBom = robotBom;
-        robotMessageBroker = new RobotMessageBroker(robotBom.getProxyIp(),
-                robotBom.getProxyPushPort(), robotBom.getProxyPullPort());
+    public RemoteRobot(RobotFileBom robotConfig, RobotColourConfigFileBom colourConfig) {
+        this.robotConfig = robotConfig;
+        this.colourConfig = colourConfig;
         initHardware();
-        Button.ESCAPE.addKeyListener(new EscapeListener());
     }
 
     public static void main(String[] args) throws IOException {
-        final RobotIniFile iniFile = new Cli(args).parse();
-        if (iniFile == null) {
-            logback.warn("Command Line Interface did not manage to extract a ini file config. Exiting now.");
+        final IniFiles iniFiles = new Cli(args).parse();
+        if (iniFiles == null) {
+            logback.warn("Command Line Interface did not manage to extract any ini file. Exiting now.");
+            System.exit(0);
+        }
+        else if (iniFiles.isPartiallyEmpty()) {
+            logback.warn("Command Line Interface did not manage to extract all ini files. " + iniFiles + " Exiting now.");
             System.exit(0);
         }
         try {
-            final RobotFileBom robotBom = iniFile.parse();
-            final RemoteRobot remoteRobot = new RemoteRobot(robotBom);
+            final RobotFileBom robotBom = iniFiles.robotIniFile.parse();
+            final RobotColourConfigFileBom colourConfigFileBom = iniFiles.colourConfigIniFile.parse();
+            final RemoteRobot remoteRobot = new RemoteRobot(robotBom, colourConfigFileBom);
             if (remoteRobot.isReady()) {
                 remoteRobot.start();
             }
         } catch (ParseIniException e) {
             logback.error("Failed to parse the ini file. Exiting now");
-        } catch (RobotFileBomException e) {
+        } catch (FileBomException e) {
             logback.error(e.getMessage());
         }
-
     }
 
     private void initHardware() {
         led = new EV3LED();
-        Sound.setVolume(robotBom.getVolume());
+        Sound.setVolume(robotConfig.getGlobalVolume());
         try {
-            initTracks(robotBom.getLeftMotorPort(), robotBom.isLeftMotorInverted(),
-                    robotBom.getRightMotorPort(), robotBom.isRightMotorInverted());
-            initRfid(robotBom.getRfidSensorPort());
-            initUs(robotBom.getUsSensorPort());
+            initTracks(robotConfig.getLeftMotorPort(), robotConfig.isLeftMotorInverted(),
+                    robotConfig.getRightMotorPort(), robotConfig.isRightMotorInverted());
+            initColor(robotConfig.getColorSensorPort());
+            initUs(robotConfig.getUsSensorPort());
+            initBattery();
 
             ready = true;
             Sound.twoBeeps();
@@ -87,34 +92,58 @@ public class RemoteRobot extends Thread {
         }
     }
 
+    private void initBattery() {
+        ThreadedSensor<String> batteryInfoThreaded = new ThreadedSensor<>(new BatteryInfo());
+        threadedSensorList.add(batteryInfoThreaded);
+        batteryInfoThreaded.start();
+        logback.info("Battery info init Ok");
+    }
+
+    private void initColor(Port colorSensorPort) {
+        if (colorSensorPort == null) {
+            logback.info("No Color Sensor configured");
+            return;
+        }
+        ThreadedSensor<Integer> colorThreadedSensor = new ThreadedSensor<>(
+                new ColourSensor(colorSensorPort, colourConfig));
+        threadedSensorList.add(colorThreadedSensor);
+        colorThreadedSensor.start();
+        logback.info("Color init Ok");
+    }
+
     private void initTracks(Port leftMotor, boolean isLeftMotorInverted,
                             Port rightMotor, boolean isRightMotorInverted) {
-        logback.debug("Init tracks: [" + leftMotor.getName() + "] " + isLeftMotorInverted +
-                " [" + rightMotor.getName() + "] " + isRightMotorInverted);
+        logback.debug("Init tracks: [" + leftMotor.getName() + "] inverted: " + isLeftMotorInverted +
+                " [" + rightMotor.getName() + "] inverted: " + isRightMotorInverted);
         tracks = new Tracks(leftMotor, isLeftMotorInverted,
                 rightMotor, isRightMotorInverted);
         logback.info("Tracks init Ok");
     }
 
-    private void initRfid(Port port) {
-        I2CPort i2cPort = port.open(I2CPort.class);
-        i2cPort.setType(I2CPort.TYPE_LOWSPEED_9V);
-        ThreadedSensor<Long> rfidThreadedSensor = new ThreadedSensor<>(new RfidFlagSensor(i2cPort));
-        threadedSensorList.add(rfidThreadedSensor);
-        rfidThreadedSensor.start();
-        logback.info("Rfid init Ok");
-    }
-
     private void initUs(Port usPort) {
-        usSensor = new NXTUltrasonicSensor(usPort);
+        if (usPort == null) {
+            logback.info("No US Sensor configured");
+            return;
+        }
+        ThreadedSensor<Integer> usThreadedSensor = new ThreadedSensor<>(new UsRadarSensor(usPort));
+        threadedSensorList.add(usThreadedSensor);
+        usThreadedSensor.start();
         logback.info("US init Ok");
     }
 
     public void run() {
         logback.info("Start running RemoteRobot");
         try {
-            connect();
-            startReceivingMessagesLoop();
+            while (!simpleEscapeKeyListener.wasKeyPressed()) {
+                createRobotMessageBrokerFromUdpBroadcast();
+                try {
+                    connect();
+                    startReceivingMessagesLoop();
+                } catch (ZMQException e) {
+                    logback.warn("ZMQ error (clear connection): " + e);
+                    robotMessageBroker = null;
+                }
+            }
         } catch (Exception e) {
             logback.error(e.getMessage());
         }
@@ -122,28 +151,37 @@ public class RemoteRobot extends Thread {
         Thread.yield();
     }
 
-    public EnumConnectionState connect() {
+    public void createRobotMessageBrokerFromUdpBroadcast() {
+        if (null == robotMessageBroker) {
+            UdpProxyFinder udpProxyFinder = UdpProxyFinderFactory.fromParameters(
+                    robotConfig.getBroadcastPort(),
+                    robotConfig.getBroadcastTimeout(),
+                    simpleEscapeKeyListener);
+            udpProxyFinder.broadcastAndGetServerAddress();
+            robotMessageBroker = new RobotMessageBroker(
+                    udpProxyFinder.getPushAddress(), udpProxyFinder.getPullAddress());
+        }
+    }
+
+    public void connect() {
         robotMessageBroker.connect();
-        return getConnectionState();
     }
 
     private void startReceivingMessagesLoop() {
         try {
             establishFirstConnection();
-            isListening = true;
             while (isRobotListeningAndConnected()) {
                 listenForNewMessage();
                 sendMessageOnSensorUpdate();
                 sleepBetweenMessages();
             }
-            isListening = false;
         } catch (Exception e) {
-            logback.error("Exception during RemoteRobot run: " + e.getMessage());
+            logback.error("Exception during RemoteRobot run: " + e.getStackTrace());
         }
     }
 
     private void establishFirstConnection() {
-        while (getConnectionState() != EnumConnectionState.CONNECTED) {
+        while (isRobotListeningAndNotConnected()) {
             listenForNewMessage();
             sleepBetweenMessages();
         }
@@ -166,7 +204,7 @@ public class RemoteRobot extends Thread {
     }
 
     private boolean shouldTrySendSensorMessage() {
-        return lastSensorMessageTime + robotBom.getSensorMessageDelayMs() <= System.currentTimeMillis();
+        return lastSensorMessageTime + robotConfig.getSensorMessageDelayMs() <= System.currentTimeMillis();
     }
 
     private void checkSensorUpdate() {
@@ -193,8 +231,12 @@ public class RemoteRobot extends Thread {
         robotMessageBroker.sendMessage(new UnitMessage(UnitMessageType.Connection, "close"));
     }
 
+    private boolean isRobotListeningAndNotConnected() {
+        return !simpleEscapeKeyListener.wasKeyPressed() && !isConnected();
+    }
+
     private boolean isRobotListeningAndConnected() {
-        return isListening && isConnected();
+        return !simpleEscapeKeyListener.wasKeyPressed() && isConnected();
     }
 
     private boolean isConnected() {
@@ -220,7 +262,8 @@ public class RemoteRobot extends Thread {
     }
 
     private void dispose() {
-        Sound.buzz();
+        Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
+
         stopRobotAndDisconnect();
         closeHardware();
         ready = false;
@@ -269,10 +312,9 @@ public class RemoteRobot extends Thread {
         if (tracks != null)
             tracks.close();
         for (ThreadedSensor sensor : threadedSensorList) {
+            sensor.stop();
             sensor.close();
         }
-        if (usSensor != null)
-            usSensor.close();
     }
 
     public Tracks getTracks() {
@@ -283,14 +325,26 @@ public class RemoteRobot extends Thread {
         return ready;
     }
 
-    private class EscapeListener implements KeyListener {
+    public void handleVictory() {
+        stopTank();
+        logback.info("I WON! \\o/");
+        Sound.playSample(new File(robotConfig.getSoundVictoryFilepath()), robotConfig.getEndGameVolume());
+    }
 
-        public void keyPressed(Key k) {
-            isListening = false;
-        }
+    public void handleDefeat() {
+        stopTank();
+        logback.info("I LOST... :(");
+        Sound.playSample(new File(robotConfig.getSoundDefeatFilepath()), robotConfig.getEndGameVolume());
+    }
 
-        public void keyReleased(Key k) {
-            isListening = false;
-        }
+    public void handleDraw() {
+        stopTank();
+        logback.info("Nobody won this time :|");
+        Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
+    }
+
+    public void handleWait() {
+        stopTank();
+        logback.info("Waiting for the game to start.");
     }
 }
