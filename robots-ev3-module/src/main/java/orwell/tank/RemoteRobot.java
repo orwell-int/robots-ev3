@@ -52,8 +52,7 @@ public class RemoteRobot extends Thread {
 
     public static void main(String[] args) throws IOException {
         final IniFiles iniFiles = new Cli(args).parse();
-        if (iniFiles == null)
-        {
+        if (iniFiles == null) {
             logback.warn("Command Line Interface did not manage to extract any ini file. Exiting now.");
             System.exit(0);
         }
