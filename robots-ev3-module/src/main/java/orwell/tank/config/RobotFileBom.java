@@ -152,7 +152,7 @@ public class RobotFileBom {
     }
 
     public void setBroadcastPort(int broadcastPort) {
-        if (broadcastPort != 0) {
+        if (broadcastPort > 0) {
             this.broadcastPort = broadcastPort;
         }
     }
@@ -162,7 +162,7 @@ public class RobotFileBom {
     }
 
     public void setBroadcastTimeout(int broadcastTimeout) {
-        if (broadcastTimeout != 0) {
+        if (broadcastTimeout > 0) {
             this.broadcastTimeout = broadcastTimeout;
         }
     }

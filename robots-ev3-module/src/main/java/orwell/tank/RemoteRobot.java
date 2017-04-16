@@ -42,7 +42,7 @@ public class RemoteRobot extends Thread {
     private boolean ready = false;
     private long lastSensorMessageTime = System.currentTimeMillis();
     private RobotColourConfigFileBom colourConfig;
-    private SimpleKeyListener simpleKeyListener = new SimpleKeyListener();
+    private SimpleEscapeKeyListener simpleEscapeKeyListener = new SimpleEscapeKeyListener();
 
     public RemoteRobot(RobotFileBom robotConfig, RobotColourConfigFileBom colourConfig) {
         this.robotConfig = robotConfig;
@@ -52,8 +52,13 @@ public class RemoteRobot extends Thread {
 
     public static void main(String[] args) throws IOException {
         final IniFiles iniFiles = new Cli(args).parse();
-        if (iniFiles == null || iniFiles.isPartiallyEmpty()) {
-            logback.warn("Command Line Interface did not manage to extract a ini file orwell.tank.config. Exiting now.");
+        if (iniFiles == null)
+        {
+            logback.warn("Command Line Interface did not manage to extract any ini file. Exiting now.");
+            System.exit(0);
+        }
+        else if (iniFiles.isPartiallyEmpty()) {
+            logback.warn("Command Line Interface did not manage to extract all ini files. " + iniFiles + " Exiting now.");
             System.exit(0);
         }
         try {
@@ -130,7 +135,7 @@ public class RemoteRobot extends Thread {
     public void run() {
         logback.info("Start running RemoteRobot");
         try {
-            while (!simpleKeyListener.wasKeyPressed()) {
+            while (!simpleEscapeKeyListener.wasKeyPressed()) {
                 createRobotMessageBrokerFromUdpBroadcast();
                 try {
                     connect();
@@ -152,7 +157,7 @@ public class RemoteRobot extends Thread {
             UdpProxyFinder udpProxyFinder = UdpProxyFinderFactory.fromParameters(
                     robotConfig.getBroadcastPort(),
                     robotConfig.getBroadcastTimeout(),
-                    simpleKeyListener);
+                    simpleEscapeKeyListener);
             udpProxyFinder.broadcastAndGetServerAddress();
             robotMessageBroker = new RobotMessageBroker(
                     udpProxyFinder.getPushAddress(), udpProxyFinder.getPullAddress());
@@ -228,11 +233,11 @@ public class RemoteRobot extends Thread {
     }
 
     private boolean isRobotListeningAndNotConnected() {
-        return !simpleKeyListener.wasKeyPressed() && !isConnected();
+        return !simpleEscapeKeyListener.wasKeyPressed() && !isConnected();
     }
 
     private boolean isRobotListeningAndConnected() {
-        return !simpleKeyListener.wasKeyPressed() && isConnected();
+        return !simpleEscapeKeyListener.wasKeyPressed() && isConnected();
     }
 
     private boolean isConnected() {

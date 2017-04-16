@@ -1,11 +1,9 @@
 package orwell.tank.actions;
 
+import lejos.mf.common.constants.ConnectionStrings;
 import orwell.tank.RemoteRobot;
 import orwell.tank.messaging.EnumConnectionState;
 
-/**
- * Created by Michaël Ludmann on 10/09/16.
- */
 public class Connection implements IInputAction {
     private final String payload;
 
@@ -15,7 +13,7 @@ public class Connection implements IInputAction {
 
     @Override
     public void performAction(RemoteRobot remoteRobot) {
-        if (payload.equalsIgnoreCase("ping")) {
+        if (payload.equalsIgnoreCase(ConnectionStrings.Ping)) {
             remoteRobot.setConnectionState(EnumConnectionState.CONNECTED);
             remoteRobot.sendConnectionAckMessage();
         }

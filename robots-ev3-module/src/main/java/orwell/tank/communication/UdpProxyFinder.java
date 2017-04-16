@@ -1,8 +1,9 @@
 package orwell.tank.communication;
 
+import lejos.mf.common.constants.UdpProxyFinderStrings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import orwell.tank.SimpleKeyListener;
+import orwell.tank.SimpleEscapeKeyListener;
 import utils.BroadcastAddress;
 
 import java.io.IOException;
@@ -10,28 +11,27 @@ import java.net.*;
 import java.util.Enumeration;
 
 public class UdpProxyFinder {
-    public static final String DISCOVER_PROXY_ROBOTS_REQUEST = "DISCOVER_PROXY-ROBOTS_REQUEST";
     private final static Logger logback = LoggerFactory.getLogger(UdpProxyFinder.class);
+    private final int RECEIVER_BUFFER_SIZE = 512;
     private final int broadcastPort;
-    private final int receiverBufferSize = 512;
     private final DatagramSocket datagramSocket;
     private final UdpBroadcastDataDecoder udpBroadcastDataDecoder;
     private int attemptsPerformed = 0;
     private String pushAddress;
     private String pullAddress;
-    private SimpleKeyListener simpleKeyListener;
+    private SimpleEscapeKeyListener simpleEscapeKeyListener;
 
     public UdpProxyFinder(
             final DatagramSocket datagramSocket,
             final int broadcastPort,
             final UdpBroadcastDataDecoder udpBroadcastDataDecoder,
-            SimpleKeyListener simpleKeyListener) {
+            SimpleEscapeKeyListener simpleEscapeKeyListener) {
         assert null != datagramSocket;
         assert null != udpBroadcastDataDecoder;
         this.datagramSocket = datagramSocket;
         this.broadcastPort = broadcastPort;
         this.udpBroadcastDataDecoder = udpBroadcastDataDecoder;
-        this.simpleKeyListener = simpleKeyListener;
+        this.simpleEscapeKeyListener = simpleEscapeKeyListener;
     }
 
     /**
@@ -39,7 +39,7 @@ public class UdpProxyFinder {
      * and have not reached max allowed attempts number
      */
     private boolean shouldTryToFindBeacon() {
-        return (!simpleKeyListener.wasKeyPressed() &&
+        return (!simpleEscapeKeyListener.wasKeyPressed() &&
                 !udpBroadcastDataDecoder.hasReceivedCorrectData());
     }
 
@@ -59,7 +59,7 @@ public class UdpProxyFinder {
                     sendBroadcastToInterface(networkInterface);
                 }
 
-                logback.info("Done looping over all network interfaces. Now waiting for a reply!");
+                logback.debug("Done looping over all network interfaces. Now waiting for a reply!");
                 waitForServerResponse(datagramSocket);
 
                 attemptsPerformed++;
@@ -79,10 +79,10 @@ public class UdpProxyFinder {
         }
 
         for (final InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
-            logback.info("interface address = " + interfaceAddress.getAddress() + " ; broadcast = " + interfaceAddress.getBroadcast());
+            logback.debug("interface address = " + interfaceAddress.getAddress() + " ; broadcast = " + interfaceAddress.getBroadcast());
             final InetAddress broadcastAddress = BroadcastAddress.getBroadcastAddress(interfaceAddress.getAddress(), interfaceAddress.getBroadcast());
             if (null != broadcastAddress) {
-                logback.info("Trying to send broadcast package on interface: " + networkInterface.getDisplayName());
+                logback.debug("Trying to send broadcast package on interface: " + networkInterface.getDisplayName());
                 sendBroadcastPackageToAddress(broadcastAddress);
             }
         }
@@ -90,12 +90,12 @@ public class UdpProxyFinder {
 
     private void sendBroadcastPackageToAddress(final InetAddress broadcastAddress) {
         final String broadcastAddrString = broadcastAddress.getHostAddress();
-        final byte[] requestBytes = DISCOVER_PROXY_ROBOTS_REQUEST.getBytes();
+        final byte[] requestBytes = UdpProxyFinderStrings.DiscoverProxyRobotsRequest.getBytes();
         final DatagramPacket datagramPacket;
         try {
             datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(broadcastAddrString), broadcastPort);
         } catch (UnknownHostException e) {
-            logback.error(e.getMessage());
+            logback.error(e.getStackTrace().toString());
             return;
         }
 
@@ -109,14 +109,14 @@ public class UdpProxyFinder {
     }
 
     private void waitForServerResponse(final DatagramSocket datagramSocket) throws IOException {
-        final byte[] recvBuf = new byte[receiverBufferSize];
+        final byte[] recvBuf = new byte[RECEIVER_BUFFER_SIZE];
         final DatagramPacket receivePacket = new DatagramPacket(recvBuf, recvBuf.length);
 
         try {
             datagramSocket.receive(receivePacket);
             udpBroadcastDataDecoder.parseFrom(receivePacket);
         } catch (final SocketTimeoutException e) {
-            logback.info("Datagram socket received timeout, continue...");
+            logback.debug("Datagram socket received timeout, continue...");
         }
     }
 

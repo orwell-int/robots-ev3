@@ -8,9 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
 
-/**
- * Created by Michaël Ludmann on 03/07/16.
- */
 public class RobotMessageBroker {
     private final static Logger logback = LoggerFactory.getLogger(RobotMessageBroker.class);
     private static final int ERROR_NUMBER = 42;

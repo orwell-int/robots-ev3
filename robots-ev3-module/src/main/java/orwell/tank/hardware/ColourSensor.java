@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.hardware.Colours.*;
 
-/**
- * Created by Michaël Ludmann on 20/11/16.
- */
 public class ColourSensor implements ISensor<Integer> {
     private final static Logger logback = LoggerFactory.getLogger(ColourSensor.class);
     private EV3ColorSensor colorSensor;

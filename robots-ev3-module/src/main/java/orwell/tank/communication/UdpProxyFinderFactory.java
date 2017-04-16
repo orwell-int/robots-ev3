@@ -2,7 +2,7 @@ package orwell.tank.communication;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import orwell.tank.SimpleKeyListener;
+import orwell.tank.SimpleEscapeKeyListener;
 
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -13,7 +13,7 @@ public final class UdpProxyFinderFactory {
     public static UdpProxyFinder fromParameters(
             final int port,
             final int timeoutPerAttemptMs,
-            SimpleKeyListener simpleKeyListener) {
+            SimpleEscapeKeyListener simpleEscapeKeyListener) {
         try {
             final DatagramSocket datagramSocket = new DatagramSocket();
             datagramSocket.setSoTimeout(timeoutPerAttemptMs);
@@ -21,7 +21,7 @@ public final class UdpProxyFinderFactory {
                     datagramSocket,
                     port,
                     new UdpBroadcastDataDecoder(),
-                    simpleKeyListener);
+                    simpleEscapeKeyListener);
             return udpProxyFinder;
         } catch (final SocketException e) {
             logback.error(e.getMessage());

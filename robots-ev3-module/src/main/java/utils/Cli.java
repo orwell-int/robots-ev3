@@ -7,10 +7,8 @@ import orwell.tank.config.RobotColourConfigIniFile;
 import orwell.tank.config.RobotIniFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 
-/**
- * Created by Michaël Ludmann on 09/09/16.
- */
 public class Cli {
     private final static Logger logback = LoggerFactory.getLogger(Cli.class);
     private final Options options = new Options();
@@ -51,22 +49,27 @@ public class Cli {
             if (cmd.hasOption("h"))
                 return help();
 
-            IniFiles iniFiles = new IniFiles();
-
+            String robotIniFileName = "";
             if (cmd.hasOption("rf")) {
-                iniFiles.robotIniFile = robotConfigurationFromFile(cmd.getOptionValue("rf"));
+                robotIniFileName = cmd.getOptionValue("rf");
             }
 
+            String colourConfigIniFileName = "";
             if (cmd.hasOption("cf")) {
-                iniFiles.colourConfigIniFile = colourConfigurationFromFile(cmd.getOptionValue("cf"));
+                colourConfigIniFileName = cmd.getOptionValue("cf");
             }
+
+            IniFiles iniFiles = new IniFiles(robotIniFileName, colourConfigIniFileName);
 
             if (!iniFiles.isEmpty()) {
                 return iniFiles;
             }
 
-            if (args.length > 0) {
-                logback.warn("Unknown parameter: " + args[0]);
+            if (cmd.hasOption("rf") && cmd.hasOption("cf")) {
+                logback.warn(iniFiles.toString());
+                return help();
+            } else if (args.length > 0) {
+                logback.warn("There is an unknown parameter among the following ones: " + Arrays.toString(args));
                 return help();
             } else {
                 return help();
@@ -84,23 +87,5 @@ public class Cli {
 
         formatter.printHelp("-f filepath", options);
         return null;
-    }
-
-    private RobotIniFile robotConfigurationFromFile(final String filePath) {
-        try {
-            return new RobotIniFile(filePath);
-        } catch (final IOException e) {
-            logback.error(e.getMessage());
-            return null;
-        }
-    }
-
-    private RobotColourConfigIniFile colourConfigurationFromFile(final String filePath) {
-        try {
-            return new RobotColourConfigIniFile(filePath);
-        } catch (final IOException e) {
-            logback.error(e.getMessage());
-            return null;
-        }
     }
 }

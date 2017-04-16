@@ -6,9 +6,6 @@ import orwell.tank.RemoteRobot;
 
 import java.util.List;
 
-/**
- * Created by Michaël Ludmann on 10/07/16.
- */
 public class Move implements IInputAction {
     private final static Logger logback = LoggerFactory.getLogger(Move.class);
     private boolean hasMove = false;

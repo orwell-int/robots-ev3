@@ -6,12 +6,12 @@ import lejos.hardware.KeyListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SimpleKeyListener implements KeyListener {
-    private final static Logger logback = LoggerFactory.getLogger(SimpleKeyListener.class);
+public class SimpleEscapeKeyListener implements KeyListener {
+    private final static Logger logback = LoggerFactory.getLogger(SimpleEscapeKeyListener.class);
 
     private boolean wasKeyPressed = false;
 
-    public SimpleKeyListener() {
+    public SimpleEscapeKeyListener() {
         Button.ESCAPE.addKeyListener(this);
     }
 
