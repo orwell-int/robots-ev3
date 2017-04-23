@@ -17,6 +17,7 @@ public class RobotMessageBroker {
     private ZMQ.Socket receiver;
     private final String senderConnectAddress;
     private final String receiverConnectAddress;
+    private boolean isConnected = false;
 
     public RobotMessageBroker(
             String senderConnectAddress,
@@ -41,6 +42,7 @@ public class RobotMessageBroker {
         sender.connect(senderConnectAddress);
         receiver.connect(receiverConnectAddress);
         logback.debug("Robot is ready for incoming proxy connection !");
+        isConnected = true;
     }
 
     public void disconnect() {
@@ -50,6 +52,7 @@ public class RobotMessageBroker {
         receiver.close();
         context.close();
         logback.info("Robot is now disconnected from proxy");
+        isConnected = false;
     }
 
     public UnitMessage receivedNewMessage() throws UnitMessageException {
@@ -62,9 +65,11 @@ public class RobotMessageBroker {
     }
 
     public void sendMessage(UnitMessage message) {
-        logback.debug("Sending " + message.getMessageType() + " message to proxy: " + message.getPayload());
-        if(!sender.send(message.toString())) {
-            throw new ZMQException("Could not send a message", ERROR_NUMBER);
+        if (isConnected) {
+            logback.debug("Sending " + message.getMessageType() + " message to proxy: " + message.getPayload());
+            if (!sender.send(message.toString())) {
+                throw new ZMQException("Could not send a message", ERROR_NUMBER);
+            }
         }
     }
 }

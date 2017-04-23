@@ -29,7 +29,7 @@ public class ColourSampler extends Thread {
     private static final long THREAD_SLEEP_BETWEEN_SAMPLES_MS = 1;
     private static final String SAMPLES_FILE_PATH = "/home/root/samples.csv";
     private static final String COLOURS_CONFIG_FILE_PATH = "/home/root/colours.config.ini";
-    private static final float SIGMA_FACTOR = 5;
+    private static final float SIGMA_FACTOR = 4;
     private static final int TOTAL_SAMPLE_SIZE = 20000;
     private boolean isListening = false;
     private boolean ready = false;

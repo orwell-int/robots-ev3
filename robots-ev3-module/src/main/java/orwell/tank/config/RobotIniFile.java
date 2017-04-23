@@ -14,9 +14,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-/**
- * Created by Michaël Ludmann on 07/09/16.
- */
 public class RobotIniFile {
     private final static Logger logback = LoggerFactory.getLogger(RobotIniFile.class);
 
@@ -37,6 +34,9 @@ public class RobotIniFile {
     private static final String DRAW_FILEPATH_OPTION_NAME = "drawFilepath";
     private static final String BROADCAST_PORT_OPTION_NAME = "broadcastPort";
     private static final String BROADCAST_TIMEOUT_OPTION_NAME = "broadcastTimeout";
+    private static final String CAMERA_SECTION_NAME = "camera";
+    private static final String START_CAMERA_SCRIPT_PATH_OPTION_NAME = "startCameraScriptPath";
+    private static final String KILL_CAMERA_SCRIPT_PATH_OPTION_NAME = "killCameraScriptPath";
 
     private final Wini iniFile;
 
@@ -69,11 +69,21 @@ public class RobotIniFile {
         robotFileBom.setSoundDrawFilepath(getDrawFilepath());
         robotFileBom.setBroadcastPort(getBroadcastPort());
         robotFileBom.setBroadcastTimeout(getBroadcastTimeout());
+        robotFileBom.setStartCameraScriptPath(getStartCameraScriptPath());
+        robotFileBom.setKillCameraScriptPath(getKillCameraScriptPath());
 
         if (!robotFileBom.isModelValid()) {
             throw new FileBomException(robotFileBom);
         }
         return robotFileBom;
+    }
+
+    private String getStartCameraScriptPath() {
+        return iniFile.get(CAMERA_SECTION_NAME, START_CAMERA_SCRIPT_PATH_OPTION_NAME, String.class);
+    }
+
+    private String getKillCameraScriptPath() {
+        return iniFile.get(CAMERA_SECTION_NAME, KILL_CAMERA_SCRIPT_PATH_OPTION_NAME, String.class);
     }
 
     private int getBroadcastPort() {

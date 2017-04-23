@@ -10,9 +10,6 @@ import java.io.IOException;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by Michaël Ludmann on 09/09/16.
- */
 public class RobotIniFileTest {
     private final static Logger logback = LoggerFactory.getLogger(RobotIniFileTest.class);
     private static final String R2D2_INI_FILENAME = "src/test/resources/tank.TEST.ini";
