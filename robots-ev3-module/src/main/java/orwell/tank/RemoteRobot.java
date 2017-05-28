@@ -20,6 +20,7 @@ import orwell.tank.config.RobotFileBom;
 import orwell.tank.exception.FileBomException;
 import orwell.tank.exception.ParseIniException;
 import orwell.tank.hardware.*;
+import orwell.tank.hardware.Camera.Camera;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
@@ -37,6 +38,7 @@ public class RemoteRobot extends Thread {
     private ArrayList<ThreadedSensor> threadedSensorList = new ArrayList<>();
     private ArrayList<UnitMessage> sensorsMessages = new ArrayList<>();
     private EnumConnectionState connectionState = EnumConnectionState.NOT_CONNECTED;
+    private Camera camera;
     private EV3LED led;
     private Tracks tracks;
     private boolean ready = false;
@@ -78,6 +80,8 @@ public class RemoteRobot extends Thread {
         led = new EV3LED();
         Sound.setVolume(robotConfig.getGlobalVolume());
         try {
+            setConnectionState(EnumConnectionState.NOT_CONNECTED);
+            initCamera();
             initTracks(robotConfig.getLeftMotorPort(), robotConfig.isLeftMotorInverted(),
                     robotConfig.getRightMotorPort(), robotConfig.isRightMotorInverted());
             initColor(robotConfig.getColorSensorPort());
@@ -90,6 +94,11 @@ public class RemoteRobot extends Thread {
             logback.error(e.getMessage());
             dispose();
         }
+    }
+
+    private void initCamera() {
+        camera = new Camera(robotConfig.getStartCameraScriptPath(), robotConfig.getKillCameraScriptPath());
+        camera.start();
     }
 
     private void initBattery() {
@@ -228,7 +237,9 @@ public class RemoteRobot extends Thread {
     }
 
     public void sendConnectionCloseMessage() {
-        robotMessageBroker.sendMessage(new UnitMessage(UnitMessageType.Connection, "close"));
+        if (robotMessageBroker != null) {
+            robotMessageBroker.sendMessage(new UnitMessage(UnitMessageType.Connection, "close"));
+        }
     }
 
     private boolean isRobotListeningAndNotConnected() {
@@ -309,6 +320,7 @@ public class RemoteRobot extends Thread {
     }
 
     private void closeHardware() {
+        camera.stop();
         if (tracks != null)
             tracks.close();
         for (ThreadedSensor sensor : threadedSensorList) {

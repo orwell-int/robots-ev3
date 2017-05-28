@@ -49,6 +49,8 @@ public class RobotFileBomTest {
             fileBom.setSoundVictoryFilepath(FILEPATH_TEST);
             fileBom.setBroadcastPort(BROADCAST_PORT);
             fileBom.setBroadcastTimeout(BROADCAST_TIMEOUT);
+            fileBom.setStartCameraScriptPath(FILEPATH_TEST);
+            fileBom.setKillCameraScriptPath(FILEPATH_TEST);
         } catch (ExceptionInInitializerError | NoClassDefFoundError e) {
             logback.warn("Cannot perform the test because no EV3 device is on the local network");
         }

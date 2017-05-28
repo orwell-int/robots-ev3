@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import orwell.tank.RemoteRobot;
 import orwell.tank.hardware.Sounds.Tone;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static lejos.hardware.Sound.playTone;
 
@@ -16,8 +16,8 @@ public class Fire implements IInputAction {
     private boolean leftWeapon;
     private boolean rightWeapon;
 
-    private Tone lightFire = new Tone(350, 300);
-    private Tone heavyFire = new Tone(150, 600);
+    private Tone lightFire = new Tone(350, 150);
+    private Tone heavyFire = new Tone(150, 300);
 
     public Fire(List<String> fireInput) {
         logback.debug("Fire: " + fireInput);
@@ -38,33 +38,37 @@ public class Fire implements IInputAction {
 
     @Override
     public void performAction(RemoteRobot remoteRobot) {
-        List<Tone> fires = new ArrayList<>();
+        ConcurrentLinkedQueue<Tone> fires = new ConcurrentLinkedQueue<>();
 
-        if (hasLeftWeaponFired())
+        if (hasLeftWeaponFired()) {
             fires.add(lightFire);
-        if (hasRightWeaponFired()) // bigger weapon
+        }
+        if (hasRightWeaponFired()) {
             fires.add(heavyFire);
+        }
 
         new SoundThread(fires).run();
     }
 
     private class SoundThread implements Runnable {
         private static final int THREAD_SLEEP_BETWEEN_TONES_MS = 5;
-        public List<Tone> tones;
+        public ConcurrentLinkedQueue<Tone> tones;
 
-        public SoundThread(List<Tone> tones) {
+        public SoundThread(ConcurrentLinkedQueue<Tone> tones) {
             this.tones = tones;
         }
 
         @Override
         public void run() {
-            for (Tone tone : tones) {
+            while (!tones.isEmpty()) {
+                Tone tone = tones.poll();
+                playTone(tone.frequency, tone.duration);
+
                 try {
                     Thread.sleep(THREAD_SLEEP_BETWEEN_TONES_MS);
                 } catch (InterruptedException e) {
                     logback.error(e.getStackTrace().toString());
                 }
-                playTone(tone.frequency, tone.duration);
             }
         }
     }

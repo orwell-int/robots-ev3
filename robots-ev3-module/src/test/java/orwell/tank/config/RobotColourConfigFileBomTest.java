@@ -10,11 +10,7 @@ import orwell.tank.hardware.Colours.RgbColourSigma;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by Michaël Ludmann on 05/02/17.
- */
 public class RobotColourConfigFileBomTest {
-    private final static Logger logback = LoggerFactory.getLogger(RobotColourConfigFileBomTest.class);
     private static final float SIGMA_FACTOR_TEST = 2;
     private static final float RED_CHANNEL_TEST = 0.02f;
     private static final float GREEN_CHANNEL_TEST = 1f;

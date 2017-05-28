@@ -2,9 +2,6 @@ package orwell.tank.config;
 
 import lejos.hardware.port.Port;
 
-/**
- * Created by Michaël Ludmann on 07/09/16.
- */
 public class RobotFileBom {
 
     private Port leftMortPort = null;
@@ -24,6 +21,8 @@ public class RobotFileBom {
     private static final int DEFAULT_BROADCAST_TIMEOUT = 1000;
     private int broadcastPort = DEFAULT_BROADCAST_PORT;
     private int broadcastTimeout = DEFAULT_BROADCAST_TIMEOUT;
+    private String startCameraScriptPath = null;
+    private String killCameraScriptPath = null;
 
     public Port getLeftMotorPort() {
         return leftMortPort;
@@ -99,7 +98,9 @@ public class RobotFileBom {
                 endGameVolume != -1 &&
                 soundDefeatFilepath != null &&
                 soundDrawFilepath != null &&
-                soundVictoryFilepath != null;
+                soundVictoryFilepath != null &&
+                startCameraScriptPath != null &&
+                killCameraScriptPath != null;
     }
 
     private boolean areSensorsPortsDifferent() {
@@ -165,5 +166,21 @@ public class RobotFileBom {
         if (broadcastTimeout > 0) {
             this.broadcastTimeout = broadcastTimeout;
         }
+    }
+
+    public String getStartCameraScriptPath() {
+        return startCameraScriptPath;
+    }
+
+    public void setStartCameraScriptPath(String startCameraScriptPath) {
+        this.startCameraScriptPath = startCameraScriptPath;
+    }
+
+    public String getKillCameraScriptPath() {
+        return killCameraScriptPath;
+    }
+
+    public void setKillCameraScriptPath(String killCameraScriptPath) {
+        this.killCameraScriptPath = killCameraScriptPath;
     }
 }

@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import static java.lang.Thread.sleep;
 
-/**
- * Created by Michaël Ludmann on 6/10/15.
- */
 public class RfidFlagSensor implements ISensor<Long> {
     private final static Logger logback = LoggerFactory.getLogger(RFIDSensor.class);
     private static final int VALUE_READ_COUNT_THRESHOLD = 999;
