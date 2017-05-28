@@ -100,7 +100,7 @@ public class RemoteRobot extends Thread {
     }
 
     private void initCamera() {
-        camera = new Camera(robotConfig.getStartCameraScriptPath(), robotConfig.getKillCameraScriptPath());
+        camera = new Camera(Runtime.getRuntime(), robotConfig.getStartCameraScriptPath(), robotConfig.getKillCameraScriptPath());
         camera.start();
     }
 
