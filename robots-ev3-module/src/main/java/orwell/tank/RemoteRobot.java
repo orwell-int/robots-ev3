@@ -21,6 +21,7 @@ import orwell.tank.exception.FileBomException;
 import orwell.tank.exception.ParseIniException;
 import orwell.tank.hardware.*;
 import orwell.tank.hardware.Camera.Camera;
+import orwell.tank.hardware.Sounds.Tune;
 import orwell.tank.messaging.EnumConnectionState;
 import orwell.tank.messaging.UnitMessageDecoderFactory;
 import utils.Cli;
@@ -29,6 +30,8 @@ import utils.IniFiles;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import static lejos.hardware.Sounds.PIANO;
 
 public class RemoteRobot extends Thread {
     private final static Logger logback = LoggerFactory.getLogger(RemoteRobot.class);
@@ -97,7 +100,7 @@ public class RemoteRobot extends Thread {
     }
 
     private void initCamera() {
-        camera = new Camera(robotConfig.getStartCameraScriptPath(), robotConfig.getKillCameraScriptPath());
+        camera = new Camera(Runtime.getRuntime(), robotConfig.getStartCameraScriptPath(), robotConfig.getKillCameraScriptPath());
         camera.start();
     }
 
@@ -340,19 +343,19 @@ public class RemoteRobot extends Thread {
     public void handleVictory() {
         stopTank();
         logback.info("I WON! \\o/");
-        Sound.playSample(new File(robotConfig.getSoundVictoryFilepath()), robotConfig.getEndGameVolume());
+        Tune.GetVictoryTune(PIANO).play();
     }
 
     public void handleDefeat() {
         stopTank();
         logback.info("I LOST... :(");
-        Sound.playSample(new File(robotConfig.getSoundDefeatFilepath()), robotConfig.getEndGameVolume());
+        Tune.GetDefeatTune(PIANO).play();
     }
 
     public void handleDraw() {
         stopTank();
         logback.info("Nobody won this time :|");
-        Sound.playSample(new File(robotConfig.getSoundDrawFilepath()), robotConfig.getEndGameVolume());
+        Tune.GetDrawTune(PIANO).play();
     }
 
     public void handleWait() {

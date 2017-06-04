@@ -13,8 +13,10 @@ public class Camera implements Runnable {
     private final String killCameraScriptAddress;
     private volatile boolean shouldRun;
     private Process runningProcess;
+    private Runtime runtime;
 
-    public Camera(final String startCameraScriptAddress, final String killCameraScriptAddress) {
+    public Camera(final Runtime runtime, final String startCameraScriptAddress, final String killCameraScriptAddress) {
+        this.runtime = runtime;
         this.startCameraScriptAddress = startCameraScriptAddress;
         this.killCameraScriptAddress = killCameraScriptAddress;
     }
@@ -30,7 +32,7 @@ public class Camera implements Runnable {
             runningProcess.destroy();
         }
         try {
-            Runtime.getRuntime().exec(killCameraScriptAddress);
+            runtime.exec(killCameraScriptAddress);
         } catch (IOException e) {
             logback.error(e.getStackTrace().toString());
         }
