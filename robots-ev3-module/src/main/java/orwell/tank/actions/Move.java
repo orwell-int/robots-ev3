@@ -7,8 +7,8 @@ import orwell.tank.RemoteRobot;
 import java.util.List;
 
 public class Move implements IInputAction {
-    private final static Logger logback = LoggerFactory.getLogger(Move.class);
-    private boolean hasMove = false;
+    private static final Logger logback = LoggerFactory.getLogger(Move.class);
+    private boolean hasMove;
     private double leftMove;
     private double rightMove;
 

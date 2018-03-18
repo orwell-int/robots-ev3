@@ -25,22 +25,22 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 public class ColourSampler extends Thread {
-    private final static Logger logback = LoggerFactory.getLogger(ColourSampler.class);
+    private static final Logger logback = LoggerFactory.getLogger(ColourSampler.class);
     private static final long THREAD_SLEEP_BETWEEN_SAMPLES_MS = 1;
     private static final String SAMPLES_FILE_PATH = "/home/root/samples.csv";
     private static final String COLOURS_CONFIG_FILE_PATH = "/home/root/colours.config.ini";
     private static final float SIGMA_FACTOR = 4;
     private static final int TOTAL_SAMPLE_SIZE = 20000;
-    private boolean isListening = false;
-    private boolean ready = false;
+    private boolean isListening;
+    private boolean ready;
     private EV3ColorSensor colourSensor;
     private Path samplesPath;
     private Path coloursConfigPath;
-    private EnumColours colorMode = EnumColours.NONE;
+    private EnumColours colourMode = EnumColours.NONE;
     private EnumRegisterMode registerMode = EnumRegisterMode.OFF;
-    private ArrayList<Float> redArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
-    private ArrayList<Float> greenArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
-    private ArrayList<Float> blueArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
+    private final ArrayList<Float> redArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
+    private final ArrayList<Float> greenArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
+    private final ArrayList<Float> blueArray = new ArrayList<>(TOTAL_SAMPLE_SIZE);
     private SensorMode sensorMode;
     private float redAverage;
     private float greenAverage;
@@ -50,16 +50,16 @@ public class ColourSampler extends Thread {
     private float blueSigma;
 
     public ColourSampler(RobotFileBom robotBom) {
-        initColour(robotBom.getColorSensorPort());
+        initColour(robotBom.getColourSensorPort());
         initFiles();
         ready = true;
         Sound.twoBeeps();
         Button.ESCAPE.addKeyListener(new EscapeListener());
-        Button.RIGHT.addKeyListener(new ColorModeListener());
+        Button.RIGHT.addKeyListener(new ColourModeListener());
         Button.ENTER.addKeyListener(new RegisterModeListener());
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         final IniFiles iniFiles = new Cli(args).parse();
         if (iniFiles == null || iniFiles.robotIniFile == null) {
             logback.warn("Command Line Interface did not manage to extract a ini file orwell.tank.config. Exiting now.");
@@ -72,9 +72,9 @@ public class ColourSampler extends Thread {
                 colourSampler.start();
             }
         } catch (ParseIniException e) {
-            logback.error("Failed to parse the ini file. Exiting now");
+            logback.error("Failed to parse the ini file. Exiting now", e);
         } catch (FileBomException e) {
-            logback.error(e.getMessage());
+            logback.error("File BOM read exception", e);
         }
     }
 
@@ -88,17 +88,15 @@ public class ColourSampler extends Thread {
         writeGlobalConfig();
     }
 
-    private void deleteAndCreateFile(String samplesFilePath) {
-        File file = new File(samplesFilePath);
-        if (file.exists()) {
-            file.delete();
-        }
+    public void run() {
+        logback.info("Start running ColourSampler");
         try {
-            file.createNewFile();
-        } catch (IOException e) {
-            logback.error(e.getMessage());
-            quit();
+            startSamplingLoop();
+        } catch (Exception e) {
+            logback.error("Colour sampler thread run exception", e);
         }
+        dispose();
+        Thread.yield();
     }
 
     private void initColour(Port colourSensorPort) {
@@ -111,17 +109,6 @@ public class ColourSampler extends Thread {
         logback.info("Colour init Ok");
     }
 
-    public void run() {
-        logback.info("Start running ColourSampler");
-        try {
-            startSamplingLoop();
-        } catch (Exception e) {
-            logback.error(e.getMessage());
-        }
-        dispose();
-        Thread.yield();
-    }
-
     private void startSamplingLoop() {
         try {
             isListening = true;
@@ -131,7 +118,7 @@ public class ColourSampler extends Thread {
             }
             isListening = false;
         } catch (Exception e) {
-            logback.error("Exception during RemoteRobot run: " + e.getMessage());
+            logback.error("Exception during RemoteRobot run", e);
         }
     }
 
@@ -140,7 +127,7 @@ public class ColourSampler extends Thread {
             float samples[] = new float[sensorMode.sampleSize()];
             sensorMode.fetchSample(samples, 0);
             if (samples.length != 3) {
-                logback.error("Color sample has an invalid length of " + samples.length);
+                logback.error("Colour sample has an invalid length of " + samples.length);
             }
             float red = samples[0];
             float green = samples[1];
@@ -154,13 +141,21 @@ public class ColourSampler extends Thread {
             try {
                 Files.write(samplesPath, data.getBytes(), StandardOpenOption.APPEND);
             } catch (IOException e) {
-                logback.error(e.getMessage());
+                logback.error("Exception while saving colour sample file", e);
             }
 
             if (redArray.size() >= TOTAL_SAMPLE_SIZE) {
                 logback.info("Total sample size reached");
                 finalizeColour();
             }
+        }
+    }
+
+    private void sleepBetweenSamples() {
+        try {
+            sleep(THREAD_SLEEP_BETWEEN_SAMPLES_MS);
+        } catch (InterruptedException e) {
+            logback.error("Exception while sleeping " + THREAD_SLEEP_BETWEEN_SAMPLES_MS + "ms in thread", e);
         }
     }
 
@@ -173,23 +168,23 @@ public class ColourSampler extends Thread {
             redArray.clear();
             greenArray.clear();
             blueArray.clear();
-            writeColorConfig();
+            writeColourConfig();
         }
-        colorMode = colorMode.next();
+        colourMode = colourMode.next();
 
-        logback.info("Color to register: " + colorMode.toString());
-        String data = colorMode + System.lineSeparator();
+        logback.info("Colour to register: " + colourMode);
+        String data = colourMode + System.lineSeparator();
         try {
             Files.write(samplesPath, data.getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            logback.error(e.getMessage());
+            logback.error("Exception while saving colour file", e);
             quit();
         }
         Sound.beepSequenceUp();
     }
 
-    private void writeColorConfig() {
-        String colorLine = "[" + colorMode + "]" + System.lineSeparator();
+    private void writeColourConfig() {
+        String colourLine = "[" + colourMode + "]" + System.lineSeparator();
         String averagesLines =
                 "averageRed = " + redAverage + System.lineSeparator() +
                         "averageGreen = " + greenAverage + System.lineSeparator() +
@@ -199,20 +194,22 @@ public class ColourSampler extends Thread {
                         "sigmaGreen = " + greenSigma + System.lineSeparator() +
                         "sigmaBlue = " + blueSigma + System.lineSeparator();
         try {
-            Files.write(coloursConfigPath, (colorLine + averagesLines + sigmasLines).getBytes(), StandardOpenOption.APPEND);
+            Files.write(coloursConfigPath, (colourLine + averagesLines + sigmasLines).getBytes(), StandardOpenOption.APPEND);
         } catch (IOException e) {
-            logback.error(e.getMessage());
+            logback.error("Exception while writing colour config file", e);
             quit();
         }
     }
 
-    private void writeGlobalConfig() {
-        String globalLine = "[global]" + System.lineSeparator();
-        String sigmaFactorLine = "sigmaFactor = " + SIGMA_FACTOR + System.lineSeparator();
+    private void deleteAndCreateFile(String samplesFilePath) {
+        File file = new File(samplesFilePath);
+        if (file.exists()) {
+            file.delete();
+        }
         try {
-            Files.write(coloursConfigPath, (globalLine + sigmaFactorLine).getBytes(), StandardOpenOption.APPEND);
+            file.createNewFile();
         } catch (IOException e) {
-            logback.error(e.getMessage());
+            logback.error("File creation exception", e);
             quit();
         }
     }
@@ -250,15 +247,18 @@ public class ColourSampler extends Thread {
         return sum / array.size();
     }
 
-    private void sleepBetweenSamples() {
+    private void writeGlobalConfig() {
+        String globalLine = "[global]" + System.lineSeparator();
+        String sigmaFactorLine = "sigmaFactor = " + SIGMA_FACTOR + System.lineSeparator();
         try {
-            sleep(THREAD_SLEEP_BETWEEN_SAMPLES_MS);
-        } catch (InterruptedException e) {
-            logback.error(e.getMessage());
+            Files.write(coloursConfigPath, (globalLine + sigmaFactorLine).getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            logback.error("Exception while writing global colour config file", e);
+            quit();
         }
     }
 
-    public boolean isReady() {
+    private boolean isReady() {
         return ready;
     }
 
@@ -275,10 +275,10 @@ public class ColourSampler extends Thread {
     private enum EnumRegisterMode {
         OFF, ON;
 
-        private static EnumRegisterMode[] vals = values();
+        private static final EnumRegisterMode[] values = values();
 
         public EnumRegisterMode next() {
-            return vals[(this.ordinal() + 1) % vals.length];
+            return values[(ordinal() + 1) % values.length];
         }
     }
 
@@ -292,7 +292,7 @@ public class ColourSampler extends Thread {
         }
     }
 
-    private class ColorModeListener implements KeyListener {
+    private class ColourModeListener implements KeyListener {
         @Override
         public void keyPressed(Key k) {
 
@@ -313,7 +313,7 @@ public class ColourSampler extends Thread {
         @Override
         public void keyReleased(Key k) {
             registerMode = registerMode.next();
-            logback.info("Is logging data: " + registerMode.toString());
+            logback.info("Is logging data: " + registerMode);
         }
     }
 }

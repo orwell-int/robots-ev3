@@ -11,7 +11,7 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 
 public class RobotIniFileTest {
-    private final static Logger logback = LoggerFactory.getLogger(RobotIniFileTest.class);
+    private static final Logger logback = LoggerFactory.getLogger(RobotIniFileTest.class);
     private static final String R2D2_INI_FILENAME = "src/test/resources/tank.TEST.ini";
     private static final String R2D2_INI_NO_RFID_FILENAME = "src/test/resources/tank.TEST_NO_RFID.ini";
     private static final String R2D2_INI_NO_US_FILENAME = "src/test/resources/tank.TEST_NO_US.ini";

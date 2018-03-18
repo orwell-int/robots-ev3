@@ -10,21 +10,21 @@ import org.slf4j.LoggerFactory;
  * Created by Michaël Ludmann on 28/08/16.
  */
 public class Tracks {
-    private final static Logger logback = LoggerFactory.getLogger(Tracks.class);
-    private boolean isLeftInverted = false;
-    private boolean isRightInverted = false;
-    private EV3LargeRegulatedMotor rightMotor;
-    private EV3LargeRegulatedMotor leftMotor;
+    private static final Logger logback = LoggerFactory.getLogger(Tracks.class);
+    private boolean isLeftInverted;
+    private boolean isRightInverted;
+    private final EV3LargeRegulatedMotor rightMotor;
+    private final EV3LargeRegulatedMotor leftMotor;
 
     public Tracks(Port leftMotorPort, boolean isLeftMotorInverted,
                   Port rightMotorPort, boolean isRightMotorInverted) {
         if (leftMotorPort == rightMotorPort) {
             logback.error("MotorPorts should be different");
         }
-        this.leftMotor = new EV3LargeRegulatedMotor(leftMotorPort);
-        this.rightMotor = new EV3LargeRegulatedMotor(rightMotorPort);
-        this.isLeftInverted = isLeftMotorInverted;
-        this.isRightInverted = isRightMotorInverted;
+        leftMotor = new EV3LargeRegulatedMotor(leftMotorPort);
+        rightMotor = new EV3LargeRegulatedMotor(rightMotorPort);
+        isLeftInverted = isLeftMotorInverted;
+        isRightInverted = isRightMotorInverted;
     }
 
     public void stop() {

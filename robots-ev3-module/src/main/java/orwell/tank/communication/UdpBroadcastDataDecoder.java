@@ -7,7 +7,7 @@ import java.net.DatagramPacket;
 import java.util.Arrays;
 
 public class UdpBroadcastDataDecoder {
-    private final static Logger logback = LoggerFactory.getLogger(UdpBroadcastDataDecoder.class);
+    private static final Logger logback = LoggerFactory.getLogger(UdpBroadcastDataDecoder.class);
     private static final String PROXY_IP_FIELD_NAME = Character.toString('*');
     private boolean isPacketDataCorrect;
     private String proxyRobotsIp;

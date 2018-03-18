@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import static org.junit.Assert.*;
 
 public class ColourMapTest {
-    private final static Logger logback = LoggerFactory.getLogger(ColourMapTest.class);
+    private static final Logger logback = LoggerFactory.getLogger(ColourMapTest.class);
     private static final float SIGMA = 0.001f;
-    private ColourMap colourMap = new ColourMap();
+    private final ColourMap colourMap = new ColourMap();
     private static final float sigmaFactor = 3.5f;
 
     private void initColourMap() {

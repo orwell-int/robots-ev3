@@ -4,25 +4,23 @@ import lejos.hardware.port.Port;
 
 public class RobotFileBom {
 
-    private Port leftMortPort = null;
-    private Port rightMotorPort = null;
-    private boolean isLeftMotorInverted = false;
-    private boolean isRightMotorInverted = false;
-    private Port rfidSensorPort = null;
-    private Port usSensorPort = null;
+    private Port leftMortPort;
+    private Port rightMotorPort;
+    private boolean isLeftMotorInverted;
+    private boolean isRightMotorInverted;
+    private Port rfidSensorPort;
+    private Port usSensorPort;
     private int sensorMessageDelayMs = -1;
     private int globalVolume = -1;
-    private Port colorSensorPort = null;
+    private Port colourSensorPort;
     private int endGameVolume = -1;
-    private String soundVictoryFilepath = null;
-    private String soundDefeatFilepath = null;
-    private String soundDrawFilepath = null;
+    private String soundVictoryFilepath;
+    private String soundDefeatFilepath;
+    private String soundDrawFilepath;
     private static final int DEFAULT_BROADCAST_PORT = 9081;
     private static final int DEFAULT_BROADCAST_TIMEOUT = 1000;
     private int broadcastPort = DEFAULT_BROADCAST_PORT;
     private int broadcastTimeout = DEFAULT_BROADCAST_TIMEOUT;
-    private String startCameraScriptPath = null;
-    private String killCameraScriptPath = null;
 
     public Port getLeftMotorPort() {
         return leftMortPort;
@@ -94,13 +92,10 @@ public class RobotFileBom {
                 globalVolume != -1 &&
                 sensorMessageDelayMs != -1 &&
                 leftMortPort != rightMotorPort &&
-                areSensorsPortsDifferent() &&
+               areSensorsPortsDifferent() &&
                 endGameVolume != -1 &&
                 soundDefeatFilepath != null &&
-                soundDrawFilepath != null &&
-                soundVictoryFilepath != null &&
-                startCameraScriptPath != null &&
-                killCameraScriptPath != null;
+                soundDrawFilepath != null && soundVictoryFilepath != null;
     }
 
     private boolean areSensorsPortsDifferent() {
@@ -108,12 +103,12 @@ public class RobotFileBom {
                 (rfidSensorPort != usSensorPort);
     }
 
-    public Port getColorSensorPort() {
-        return colorSensorPort;
+    public Port getColourSensorPort() {
+        return colourSensorPort;
     }
 
-    public void setColorSensorPort(Port colorSensorPort) {
-        this.colorSensorPort = colorSensorPort;
+    public void setColourSensorPort(Port colourSensorPort) {
+        this.colourSensorPort = colourSensorPort;
     }
 
     public String getSoundVictoryFilepath() {
@@ -166,21 +161,5 @@ public class RobotFileBom {
         if (broadcastTimeout > 0) {
             this.broadcastTimeout = broadcastTimeout;
         }
-    }
-
-    public String getStartCameraScriptPath() {
-        return startCameraScriptPath;
-    }
-
-    public void setStartCameraScriptPath(String startCameraScriptPath) {
-        this.startCameraScriptPath = startCameraScriptPath;
-    }
-
-    public String getKillCameraScriptPath() {
-        return killCameraScriptPath;
-    }
-
-    public void setKillCameraScriptPath(String killCameraScriptPath) {
-        this.killCameraScriptPath = killCameraScriptPath;
     }
 }

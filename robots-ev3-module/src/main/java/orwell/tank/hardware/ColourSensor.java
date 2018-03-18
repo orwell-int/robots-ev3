@@ -10,17 +10,17 @@ import orwell.tank.config.RobotColourConfigFileBom;
 import orwell.tank.hardware.Colours.*;
 
 public class ColourSensor implements ISensor<Integer> {
-    private final static Logger logback = LoggerFactory.getLogger(ColourSensor.class);
-    private EV3ColorSensor colorSensor;
-    private SensorMeasure<Integer> sensorMeasure;
+    private static final Logger logback = LoggerFactory.getLogger(ColourSensor.class);
+    private EV3ColorSensor colourSensor;
+    private final SensorMeasure<Integer> sensorMeasure;
     private static final long READ_VALUE_INTERVAL_MS = 1;
-    private ColourMap colourMap = new ColourMap();
+    private final ColourMap colourMap = new ColourMap();
     private static final int WINDOW_SIZE = 1;
     private static final Integer MIN_VALUE_FOR_MATCH = 1;
-    private SlidingWindow slidingWindow = new SlidingWindow(WINDOW_SIZE, MIN_VALUE_FOR_MATCH);
+    private final SlidingWindow slidingWindow = new SlidingWindow(WINDOW_SIZE, MIN_VALUE_FOR_MATCH);
 
     public ColourSensor(Port port, RobotColourConfigFileBom colourConfig) {
-        initColorSensor(port);
+        initColourSensor(port);
         sensorMeasure = new SensorMeasure<>();
         float sigmaFactor = colourConfig.getSigmaFactor();
 
@@ -42,8 +42,8 @@ public class ColourSensor implements ISensor<Integer> {
         logback.debug("ColourSensor init done");
     }
 
-    private void initColorSensor(Port port) {
-        colorSensor = new EV3ColorSensor(port);
+    private void initColourSensor(Port port) {
+        colourSensor = new EV3ColorSensor(port);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ColourSensor implements ISensor<Integer> {
 
     @Override
     public void readValue() {
-        SensorMode sensorMode = colorSensor.getRGBMode();
+        SensorMode sensorMode = colourSensor.getRGBMode();
         float samples[] = new float[sensorMode.sampleSize()];
         sensorMode.fetchSample(samples, 0);
         RgbColour rgbColour = new RgbColour(samples[0], samples[1], samples[2]);
@@ -70,7 +70,7 @@ public class ColourSensor implements ISensor<Integer> {
 
     @Override
     public void close() {
-        colorSensor.close();
+        colourSensor.close();
     }
 
     @Override

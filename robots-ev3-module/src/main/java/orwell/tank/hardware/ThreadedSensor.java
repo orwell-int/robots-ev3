@@ -5,11 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ThreadedSensor<T> implements Runnable {
-    private final static Logger logback = LoggerFactory.getLogger(ThreadedSensor.class);
+    private static final Logger logback = LoggerFactory.getLogger(ThreadedSensor.class);
     private final long SENSOR_READ_VALUE_INTERVAL;
-    private T lastValue = null;
+    private T lastValue;
 
-    private ISensor<T> sensor;
+    private final ISensor<T> sensor;
     private volatile boolean shouldRun;
 
     public ThreadedSensor(ISensor<T> sensor) {
@@ -44,7 +44,7 @@ public class ThreadedSensor<T> implements Runnable {
                 try {
                     Thread.sleep(SENSOR_READ_VALUE_INTERVAL);
                 } catch (InterruptedException e) {
-                    logback.error(e.getMessage());
+                    logback.error("Exception while sleeping " + SENSOR_READ_VALUE_INTERVAL + "ms in thread", e);
                 }
             }
         }

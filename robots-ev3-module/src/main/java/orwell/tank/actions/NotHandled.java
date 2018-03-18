@@ -7,7 +7,7 @@ import orwell.tank.RemoteRobot;
 import java.util.List;
 
 public class NotHandled implements IInputAction {
-    private final static Logger logback = LoggerFactory.getLogger(NotHandled.class);
+    private static final Logger logback = LoggerFactory.getLogger(NotHandled.class);
     private final List<String> payloadBody;
 
     public NotHandled(List<String> payloadBody) {

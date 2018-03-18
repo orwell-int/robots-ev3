@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
  * Created by Michaël Ludmann on 28/01/17.
  */
 public class RgbColour {
-    private final static Logger logback = LoggerFactory.getLogger(RgbColour.class);
+    private static final Logger logback = LoggerFactory.getLogger(RgbColour.class);
 
-    public enum RgbColourChannels {Red, Green, Blue};
+    public enum RgbColourChannels {Red, Green, Blue}
 
     public float red;
     public float green;
@@ -63,12 +63,10 @@ public class RgbColour {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (this.getClass() != obj.getClass()) return false;
+        if (getClass() != obj.getClass()) return false;
 
         RgbColour rgbColour = (RgbColour) obj;
 
-        return (this.red == rgbColour.red &&
-                this.green == rgbColour.green &&
-                this.blue == rgbColour.blue);
+        return (red == rgbColour.red && green == rgbColour.green && blue == rgbColour.blue);
     }
 }

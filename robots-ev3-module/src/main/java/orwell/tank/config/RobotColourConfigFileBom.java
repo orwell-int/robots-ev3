@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RobotColourConfigFileBom {
-    private Map<EnumColours, RgbColour> rgbColourMap = new HashMap<>();
-    private Map<EnumColours, RgbColourSigma> rgbColourSigmaMap = new HashMap<>();
+    private final Map<EnumColours, RgbColour> rgbColourMap = new HashMap<>();
+    private final Map<EnumColours, RgbColourSigma> rgbColourSigmaMap = new HashMap<>();
     private float sigmaFactor = 1;
 
     public RgbColour getRgbColour(EnumColours colour) {

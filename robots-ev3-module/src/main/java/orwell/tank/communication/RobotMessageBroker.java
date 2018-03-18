@@ -6,22 +6,22 @@ import lejos.mf.common.exception.UnitMessageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
+import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMQException;
 
 public class RobotMessageBroker {
-    private final static Logger logback = LoggerFactory.getLogger(RobotMessageBroker.class);
+    private static final Logger logback = LoggerFactory.getLogger(RobotMessageBroker.class);
     private static final int ERROR_NUMBER = 42;
-
-    private ZMQ.Context context;
-    private ZMQ.Socket sender;
-    private ZMQ.Socket receiver;
     private final String senderConnectAddress;
     private final String receiverConnectAddress;
-    private boolean isConnected = false;
+    private Context context;
+    private Socket sender;
+    private Socket receiver;
+    private boolean isConnected;
 
-    public RobotMessageBroker(
-            String senderConnectAddress,
-            String receiverConnectAddress) {
+    public RobotMessageBroker(String senderConnectAddress,
+                              String receiverConnectAddress) {
         this.senderConnectAddress = senderConnectAddress;
         this.receiverConnectAddress = receiverConnectAddress;
 
@@ -38,7 +38,10 @@ public class RobotMessageBroker {
     }
 
     public void connect() {
-        logback.info("Robot is starting connection on " + senderConnectAddress + " (push) and " + receiverConnectAddress + " (pull)");
+        logback.info(
+                "Robot is starting connection on " + senderConnectAddress +
+                " (push) and " + receiverConnectAddress +
+                " (pull)");
         sender.connect(senderConnectAddress);
         receiver.connect(receiverConnectAddress);
         logback.debug("Robot is ready for incoming proxy connection !");

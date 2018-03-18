@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 public class UsRadarSensor extends EV3UltrasonicSensor implements ISensor<Integer> {
     public static final int METER_TO_CM_FACTOR = 100;
     private static final long READ_VALUE_INTERVAL_MS = 100;
-    private SensorMeasure<Integer> sensorMeasure;
+    private final SensorMeasure<Integer> sensorMeasure;
 
     public UsRadarSensor(Port port) {
         super(port);

@@ -16,10 +16,10 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(JUnit4.class)
 public class UnitMessageDecoderFactoryTest {
-    private final static Logger logback = LoggerFactory.getLogger(UnitMessageDecoderFactoryTest.class);
+    private static final Logger logback = LoggerFactory.getLogger(UnitMessageDecoderFactoryTest.class);
 
     @Test
-    public void testParseFrom_Move() throws Exception {
+    public void testParseFrom_Move() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "move 0.50 1.00");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -27,7 +27,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_Fire() throws Exception {
+    public void testParseFrom_Fire() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "fire true false");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -35,7 +35,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_Stop() throws Exception {
+    public void testParseFrom_Stop() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "stop");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -43,7 +43,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_StopProgram() throws Exception {
+    public void testParseFrom_StopProgram() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "stopPrg");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -51,7 +51,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_GameState() throws Exception {
+    public void testParseFrom_GameState() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "game");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -59,7 +59,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_NotHandled() throws Exception {
+    public void testParseFrom_NotHandled() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "anything else");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -67,7 +67,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_NotHandled_Empty() throws Exception {
+    public void testParseFrom_NotHandled_Empty() {
         UnitMessage unitMessage = new UnitMessage(UnitMessageType.Command, "");
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 
@@ -75,7 +75,7 @@ public class UnitMessageDecoderFactoryTest {
     }
 
     @Test
-    public void testParseFrom_NotHandled_Null() throws Exception {
+    public void testParseFrom_NotHandled_Null() {
         UnitMessage unitMessage = null;
         IInputAction inputAction = UnitMessageDecoderFactory.parseFrom(unitMessage);
 

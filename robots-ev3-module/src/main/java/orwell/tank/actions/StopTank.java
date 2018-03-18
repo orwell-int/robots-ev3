@@ -7,7 +7,7 @@ import orwell.tank.RemoteRobot;
 import java.util.List;
 
 public class StopTank implements IInputAction {
-    private final static Logger logback = LoggerFactory.getLogger(StopTank.class);
+    private static final Logger logback = LoggerFactory.getLogger(StopTank.class);
 
     public StopTank(List<String> payloadBody) {
         logback.debug("StopTank: " + payloadBody);

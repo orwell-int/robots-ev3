@@ -7,21 +7,23 @@ import orwell.tank.SimpleEscapeKeyListener;
 import utils.BroadcastAddress;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Scanner;
 
 public class UdpProxyFinder {
-    private final static Logger logback = LoggerFactory.getLogger(UdpProxyFinder.class);
-    private final int RECEIVER_BUFFER_SIZE = 512;
+    private static final Logger logback = LoggerFactory.getLogger(UdpProxyFinder.class);
     private final int broadcastPort;
     private final DatagramSocket datagramSocket;
     private final UdpBroadcastDataDecoder udpBroadcastDataDecoder;
-    private int attemptsPerformed = 0;
+    private final SimpleEscapeKeyListener simpleEscapeKeyListener;
     private String pushAddress;
     private String pullAddress;
-    private SimpleEscapeKeyListener simpleEscapeKeyListener;
+    private int attemptsPerformed;
 
-    public UdpProxyFinder(
+    UdpProxyFinder(
             final DatagramSocket datagramSocket,
             final int broadcastPort,
             final UdpBroadcastDataDecoder udpBroadcastDataDecoder,
@@ -32,15 +34,6 @@ public class UdpProxyFinder {
         this.broadcastPort = broadcastPort;
         this.udpBroadcastDataDecoder = udpBroadcastDataDecoder;
         this.simpleEscapeKeyListener = simpleEscapeKeyListener;
-    }
-
-    /**
-     * @return true if we did not get any meaningful response from server
-     * and have not reached max allowed attempts number
-     */
-    private boolean shouldTryToFindBeacon() {
-        return (!simpleEscapeKeyListener.wasKeyPressed() &&
-                !udpBroadcastDataDecoder.hasReceivedCorrectData());
     }
 
     /**
@@ -69,8 +62,16 @@ public class UdpProxyFinder {
 
 
         } catch (final Exception e) {
-            logback.error(e.getMessage());
+            logback.error("Exception happened while broadcasting and getting server-game address", e);
         }
+    }
+
+    /**
+     * @return true if we did not get any meaningful response from server
+     * and have not reached max allowed attempts number
+     */
+    private boolean shouldTryToFindBeacon() {
+        return (!simpleEscapeKeyListener.wasKeyPressed() && !udpBroadcastDataDecoder.hasReceivedCorrectData());
     }
 
     private void sendBroadcastToInterface(final NetworkInterface networkInterface) throws SocketException {
@@ -79,8 +80,10 @@ public class UdpProxyFinder {
         }
 
         for (final InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses()) {
-            logback.debug("interface address = " + interfaceAddress.getAddress() + " ; broadcast = " + interfaceAddress.getBroadcast());
-            final InetAddress broadcastAddress = BroadcastAddress.getBroadcastAddress(interfaceAddress.getAddress(), interfaceAddress.getBroadcast());
+            logback.debug("interface address = " + interfaceAddress.getAddress() + " ; broadcast = " +
+                          interfaceAddress.getBroadcast());
+            final InetAddress broadcastAddress = BroadcastAddress
+                    .getBroadcastAddress(interfaceAddress.getAddress(), interfaceAddress.getBroadcast());
             if (null != broadcastAddress) {
                 logback.debug("Trying to send broadcast package on interface: " + networkInterface.getDisplayName());
                 sendBroadcastPackageToAddress(broadcastAddress);
@@ -88,29 +91,10 @@ public class UdpProxyFinder {
         }
     }
 
-    private void sendBroadcastPackageToAddress(final InetAddress broadcastAddress) {
-        final String broadcastAddrString = broadcastAddress.getHostAddress();
-        final byte[] requestBytes = UdpProxyFinderStrings.DiscoverProxyRobotsRequest.getBytes();
-        final DatagramPacket datagramPacket;
-        try {
-            datagramPacket = new DatagramPacket(requestBytes, requestBytes.length, InetAddress.getByName(broadcastAddrString), broadcastPort);
-        } catch (UnknownHostException e) {
-            logback.error(e.getStackTrace().toString());
-            return;
-        }
-
-        try {
-            datagramSocket.send(datagramPacket);
-        } catch (final Exception e) {
-            logback.error("Address " + datagramPacket.getAddress() + " Port " + datagramPacket.getPort() + " SocketAddr " + datagramPacket.getSocketAddress() + " Data " + datagramPacket.getData());
-            return;
-        }
-        logback.info("Request packet sent to: " + broadcastAddress.getHostAddress());
-    }
-
     private void waitForServerResponse(final DatagramSocket datagramSocket) throws IOException {
-        final byte[] recvBuf = new byte[RECEIVER_BUFFER_SIZE];
-        final DatagramPacket receivePacket = new DatagramPacket(recvBuf, recvBuf.length);
+        int RECEIVER_BUFFER_SIZE = 512;
+        final byte[] receiverBuf = new byte[RECEIVER_BUFFER_SIZE];
+        final DatagramPacket receivePacket = new DatagramPacket(receiverBuf, receiverBuf.length);
 
         try {
             datagramSocket.receive(receivePacket);
@@ -122,9 +106,48 @@ public class UdpProxyFinder {
 
     private void fillFoundAddressFields() {
         if (hasFoundServer()) {
-            this.pushAddress = udpBroadcastDataDecoder.getPushAddress();
-            this.pullAddress = udpBroadcastDataDecoder.getPullAddress();
+            pushAddress = udpBroadcastDataDecoder.getPushAddress();
+            pullAddress = udpBroadcastDataDecoder.getPullAddress();
         }
+    }
+
+    private void sendBroadcastPackageToAddress(final InetAddress broadcastAddress) {
+        final String broadcastAddressString = broadcastAddress.getHostAddress();
+        final String request;
+        final byte[] requestBytes;
+        try {
+            request = UdpProxyFinderStrings.DiscoverProxyRobotsRequest + " " + execReadToString("hostname").trim();
+            requestBytes = request.getBytes();
+        } catch (IOException e) {
+            logback.error("Failed to execute hostname command", e);
+            return;
+        }
+
+        final DatagramPacket datagramPacket;
+        try {
+            datagramPacket = new DatagramPacket(requestBytes, requestBytes.length,
+                                                InetAddress.getByName(broadcastAddressString), broadcastPort);
+        } catch (UnknownHostException e) {
+            logback.error("Failed to get broadcast address by name: " + broadcastAddressString, e);
+            return;
+        }
+
+        try {
+            datagramSocket.send(datagramPacket);
+        } catch (final Exception e) {
+            logback.error(
+                    "Address " + datagramPacket.getAddress() + " Port " + datagramPacket.getPort() + " SocketAddr " +
+                    datagramPacket.getSocketAddress() + " Data " + Arrays.toString(datagramPacket.getData()), e);
+            return;
+        }
+        logback.info("Request packet" + " [" + request + "] " + "sent to: " + broadcastAddress.getHostAddress());
+    }
+
+    /**
+     * @return true if UdpProxyFinder has found the server and it returned correct data
+     */
+    private boolean hasFoundServer() {
+        return udpBroadcastDataDecoder.hasReceivedCorrectData();
     }
 
     /**
@@ -143,10 +166,12 @@ public class UdpProxyFinder {
         return pullAddress;
     }
 
-    /**
-     * @return true if UdpProxyFinder has found the server and it returned correct data
-     */
-    public boolean hasFoundServer() {
-        return udpBroadcastDataDecoder.hasReceivedCorrectData();
+    private static String execReadToString(String execCommand) throws IOException {
+        Process process = Runtime.getRuntime().exec(execCommand);
+        try (InputStream stream = process.getInputStream()) {
+            try (Scanner s = new Scanner(stream).useDelimiter("\\A")) {
+                return s.hasNext() ? s.next() : "";
+            }
+        }
     }
 }

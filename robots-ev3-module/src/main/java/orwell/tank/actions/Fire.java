@@ -8,7 +8,7 @@ import orwell.tank.hardware.Sounds.Tune;
 import java.util.List;
 
 public class Fire implements IInputAction {
-    private final static Logger logback = LoggerFactory.getLogger(Fire.class);
+    private static final Logger logback = LoggerFactory.getLogger(Fire.class);
 
     private boolean leftWeapon;
     private boolean rightWeapon;

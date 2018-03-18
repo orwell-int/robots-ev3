@@ -6,17 +6,15 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-/**
- * Created by Michaël Ludmann on 28/01/17.
- */
 public class SlidingWindow {
-    private final static Logger logback = LoggerFactory.getLogger(SlidingWindow.class);
+    private static final Logger logback = LoggerFactory.getLogger(SlidingWindow.class);
 
     private final int windowSize;
     private final int minNumberForMatch;
     private final ArrayDeque<EnumColours> slidingWindow;
-    private Map<EnumColours, MutableInt> colourCounterMap = new HashMap<>();
+    private final Map<EnumColours, MutableInt> colourCounterMap = new HashMap<>();
 
     public SlidingWindow(int windowSize, int minNumberForMatch) {
         this.windowSize = windowSize;
@@ -25,7 +23,7 @@ public class SlidingWindow {
     }
 
     public void addColour(EnumColours colour) {
-//        logback.debug("Sliding Window add colour: " + colour);
+        logback.debug("Sliding Window add colour: " + colour);
         if(slidingWindow.size() == windowSize) {
             EnumColours colourRemoved = slidingWindow.removeFirst();
             MutableInt count = colourCounterMap.get(colourRemoved);
@@ -35,7 +33,7 @@ public class SlidingWindow {
         MutableInt count = colourCounterMap.get(colour);
         if (count == null) {
             colourCounterMap.put(colour, new MutableInt());
-//            logback.debug("Adding colour " + colour + " in sliding window");
+            logback.debug("Adding colour " + colour + " in sliding window");
         } else {
             count.increment();
         }
@@ -47,7 +45,7 @@ public class SlidingWindow {
             return EnumColours.NONE;
         }
 
-        for(Map.Entry<EnumColours, MutableInt> entry : colourCounterMap.entrySet()) {
+        for(Entry<EnumColours, MutableInt> entry : colourCounterMap.entrySet()) {
             if(entry.getValue().get() >= minNumberForMatch) {
                 return entry.getKey();
             }

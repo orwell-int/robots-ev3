@@ -1,15 +1,9 @@
 package utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class BroadcastAddress {
-
-    private final static Logger logback = LoggerFactory.getLogger(BroadcastAddress.class);
-
     public static InetAddress getBroadcastAddress(InetAddress ipAddress, InetAddress subnetMask) {
         byte[] address = ipAddress.getAddress();
         byte[] subnet = subnetMask.getAddress();

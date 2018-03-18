@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 import static java.lang.Thread.sleep;
 
 public class RfidFlagSensor implements ISensor<Long> {
-    private final static Logger logback = LoggerFactory.getLogger(RFIDSensor.class);
+    private static final Logger logback = LoggerFactory.getLogger(RFIDSensor.class);
     private static final int VALUE_READ_COUNT_THRESHOLD = 999;
     private static final long SLEEP_BETWEEN_RESTART_MS = 315;
     private static final long READ_VALUE_INTERVAL = 250;
     private final Port port;
-    private SensorMeasure<Long> sensorMeasure;
-    private int valueReadCount = 0;
+    private final SensorMeasure<Long> sensorMeasure;
+    private int valueReadCount;
     private RFIDSensor rfidSensor;
     private I2CPort i2cPort;
 
@@ -48,11 +48,11 @@ public class RfidFlagSensor implements ISensor<Long> {
     @Override
     public void readValue() {
         if (valueReadCount >= VALUE_READ_COUNT_THRESHOLD) {
-            this.close();
+            close();
             try {
                 sleep(SLEEP_BETWEEN_RESTART_MS);
             } catch (InterruptedException e) {
-                logback.error(e.getMessage());
+                logback.error("Exception while sleeping " + SLEEP_BETWEEN_RESTART_MS + "ms in thread", e);
             }
             initRfid(port);
         }
