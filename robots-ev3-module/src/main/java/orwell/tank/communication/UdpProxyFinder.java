@@ -21,7 +21,7 @@ public class UdpProxyFinder {
     private final SimpleEscapeKeyListener simpleEscapeKeyListener;
     private String pushAddress;
     private String pullAddress;
-    private int attemptsPerformed;
+    private int attemptsPerformed = 0;
 
     UdpProxyFinder(
             final DatagramSocket datagramSocket,

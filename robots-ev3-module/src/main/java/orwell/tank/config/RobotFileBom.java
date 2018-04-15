@@ -4,6 +4,8 @@ import lejos.hardware.port.Port;
 
 public class RobotFileBom {
 
+    private static final int DEFAULT_BROADCAST_PORT = 9081;
+    private static final int DEFAULT_BROADCAST_TIMEOUT = 1000;
     private Port leftMortPort;
     private Port rightMotorPort;
     private boolean isLeftMotorInverted;
@@ -17,8 +19,6 @@ public class RobotFileBom {
     private String soundVictoryFilepath;
     private String soundDefeatFilepath;
     private String soundDrawFilepath;
-    private static final int DEFAULT_BROADCAST_PORT = 9081;
-    private static final int DEFAULT_BROADCAST_TIMEOUT = 1000;
     private int broadcastPort = DEFAULT_BROADCAST_PORT;
     private int broadcastTimeout = DEFAULT_BROADCAST_TIMEOUT;
 
@@ -88,19 +88,19 @@ public class RobotFileBom {
 
     public boolean isModelValid() {
         return leftMortPort != null &&
-                rightMotorPort != null &&
-                globalVolume != -1 &&
-                sensorMessageDelayMs != -1 &&
-                leftMortPort != rightMotorPort &&
+               rightMotorPort != null &&
+               globalVolume != -1 &&
+               sensorMessageDelayMs != -1 &&
+               leftMortPort != rightMotorPort &&
                areSensorsPortsDifferent() &&
-                endGameVolume != -1 &&
-                soundDefeatFilepath != null &&
-                soundDrawFilepath != null && soundVictoryFilepath != null;
+               endGameVolume != -1 &&
+               soundDefeatFilepath != null &&
+               soundDrawFilepath != null &&
+               soundVictoryFilepath != null;
     }
 
     private boolean areSensorsPortsDifferent() {
-        return (rfidSensorPort == null && usSensorPort == null) ||
-                (rfidSensorPort != usSensorPort);
+        return (rfidSensorPort == null && usSensorPort == null) || (rfidSensorPort != usSensorPort);
     }
 
     public Port getColourSensorPort() {

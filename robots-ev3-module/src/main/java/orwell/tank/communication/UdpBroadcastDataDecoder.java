@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class UdpBroadcastDataDecoder {
     private static final Logger logback = LoggerFactory.getLogger(UdpBroadcastDataDecoder.class);
     private static final String PROXY_IP_FIELD_NAME = Character.toString('*');
-    private boolean isPacketDataCorrect;
+    private boolean isPacketDataCorrect = false;
     private String proxyRobotsIp;
     private String partialPusherAddress;
     private String partialPullerAddress;
