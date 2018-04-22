@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
  * Created by Michaël Ludmann on 06/09/16.
  */
 public class SensorMeasureTest {
-    private final static Logger logback = LoggerFactory.getLogger(SensorMeasureTest.class);
+    private static final Logger logback = LoggerFactory.getLogger(SensorMeasureTest.class);
 
     private static final Float FLOAT_VALUE = 42.0f;
 

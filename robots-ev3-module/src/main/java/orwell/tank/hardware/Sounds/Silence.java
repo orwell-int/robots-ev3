@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Silence implements IPlayable {
-    private final static Logger logback = LoggerFactory.getLogger(Silence.class);
-    public long durationMs;
+    private static final Logger logback = LoggerFactory.getLogger(Silence.class);
+    private final long durationMs;
 
-    public Silence(long durationMs) {
+    Silence(long durationMs) {
         this.durationMs = durationMs;
     }
 
@@ -16,7 +16,7 @@ public class Silence implements IPlayable {
         try {
             Thread.sleep(durationMs);
         } catch (InterruptedException e) {
-            logback.error(e.getStackTrace().toString());
+            logback.error("Exception while sleeping " + durationMs + "ms in thread", e);
         }
     }
 }

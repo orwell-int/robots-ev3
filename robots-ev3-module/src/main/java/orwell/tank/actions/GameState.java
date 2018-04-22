@@ -8,29 +8,29 @@ import orwell.tank.RemoteRobot;
 import java.util.List;
 
 public class GameState implements IInputAction {
-    private final static Logger logback = LoggerFactory.getLogger(GameState.class);
+    private static final Logger logback = LoggerFactory.getLogger(GameState.class);
     private String payload;
 
     public GameState(List<String> payloadBody) {
         if (payloadBody == null || payloadBody.size() == 0) {
             return;
         }
-        this.payload = payloadBody.get(0);
+        payload = payloadBody.get(0);
         logback.debug("GameState: " + payloadBody);
     }
 
     @Override
     public void performAction(RemoteRobot remoteRobot) {
-        if (payload != null && payload.equalsIgnoreCase(GameStateStrings.Victory)) {
+        if (GameStateStrings.Victory.equalsIgnoreCase(payload)) {
             remoteRobot.handleVictory();
         }
-        else if (payload != null && payload.equalsIgnoreCase(GameStateStrings.Defeat)) {
+        else if (GameStateStrings.Defeat.equalsIgnoreCase(payload)) {
             remoteRobot.handleDefeat();
         }
-        else if (payload != null && payload.equalsIgnoreCase(GameStateStrings.Draw)) {
+        else if (GameStateStrings.Draw.equalsIgnoreCase(payload)) {
             remoteRobot.handleDraw();
         }
-        else if (payload != null && payload.equalsIgnoreCase(GameStateStrings.Wait)) {
+        else if (GameStateStrings.Wait.equalsIgnoreCase(payload)) {
             remoteRobot.handleWait();
         }
     }

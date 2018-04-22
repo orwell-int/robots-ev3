@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
  * Created by Michaël Ludmann on 05/02/17.
  */
 public class RobotColourConfigIniFileTest {
-    private final static Logger logback = LoggerFactory.getLogger(RobotColourConfigIniFileTest.class);
+    private static final Logger logback = LoggerFactory.getLogger(RobotColourConfigIniFileTest.class);
 
     private static final String COLOUR_INI_FILENAME = "src/test/resources/colours.TEST.ini";
     private static final float DOUBLE_COMPARE_TOLERANCE = 1E-4f;
@@ -43,7 +43,7 @@ public class RobotColourConfigIniFileTest {
     }
 
     @Test
-    public void testConstructor() throws IOException {
+    public void testConstructor() {
         assertNotNull(configIniFile);
     }
 
@@ -120,8 +120,7 @@ public class RobotColourConfigIniFileTest {
         try {
             configFileBom = configIniFile.parse();
         } catch (Exception e) {
-            logback.error(e.getMessage());
-            logback.error("Colour config file BOM is null, parsing file " + COLOUR_INI_FILENAME + " failed");
+            logback.error("Colour config file BOM is null, parsing file " + COLOUR_INI_FILENAME + " failed", e);
             fail();
         }
     }

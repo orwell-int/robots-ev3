@@ -8,6 +8,7 @@ import orwell.tank.exception.ParseIniException;
 import orwell.tank.exception.FileBomException;
 import orwell.tank.hardware.Colours.EnumColours;
 import orwell.tank.hardware.Colours.RgbColour;
+import orwell.tank.hardware.Colours.RgbColour.RgbColourChannels;
 import orwell.tank.hardware.Colours.RgbColourSigma;
 
 import java.io.File;
@@ -18,13 +19,13 @@ import java.io.IOException;
  * Created by Michaël Ludmann on 05/02/17.
  */
 public class RobotColourConfigIniFile {
-    private final static Logger logback = LoggerFactory.getLogger(RobotColourConfigIniFile.class);
+    private static final Logger logback = LoggerFactory.getLogger(RobotColourConfigIniFile.class);
 
     private static final String GLOBAL_SECTION_NAME = "global";
     private static final String AVERAGE_OPTION_PREFIX = "average";
     private static final String SIGMA_OPTION_PREFIX = "sigma";
     private static final String SIGMA_FACTOR_OPTION_NAME = "sigmaFactor";
-    private RobotColourConfigFileBom configFileBom = new RobotColourConfigFileBom();
+    private final RobotColourConfigFileBom configFileBom = new RobotColourConfigFileBom();
 
     private final Wini colourIniFile;
 
@@ -42,7 +43,7 @@ public class RobotColourConfigIniFile {
         colourIniFile = new Wini(file);
     }
 
-    public RobotColourConfigFileBom parse() throws ExceptionInInitializerError, ParseIniException, FileBomException {
+    public RobotColourConfigFileBom parse() throws ExceptionInInitializerError {
         configFileBom.setSigmaFactor(getSigmaFactor());
         setColourSectionsValues();
 
@@ -62,7 +63,7 @@ public class RobotColourConfigIniFile {
         String colourName = colour.name();
         RgbColour rgbColour = new RgbColour(-1, -1, -1);
 
-        for (RgbColour.RgbColourChannels channel : RgbColour.RgbColourChannels.values()) {
+        for (RgbColourChannels channel : RgbColourChannels.values()) {
             String channelName = channel.name();
             rgbColour.setChannel(channel, colourIniFile.get(colourName, AVERAGE_OPTION_PREFIX + channelName, float.class));
         }

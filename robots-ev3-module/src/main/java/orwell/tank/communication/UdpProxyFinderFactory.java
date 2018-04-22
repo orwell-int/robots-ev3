@@ -8,7 +8,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 public final class UdpProxyFinderFactory {
-    private final static Logger logback = LoggerFactory.getLogger(UdpProxyFinderFactory.class);
+    private static final Logger logback = LoggerFactory.getLogger(UdpProxyFinderFactory.class);
 
     public static UdpProxyFinder fromParameters(
             final int port,
@@ -24,7 +24,7 @@ public final class UdpProxyFinderFactory {
                     simpleEscapeKeyListener);
             return udpProxyFinder;
         } catch (final SocketException e) {
-            logback.error(e.getMessage());
+            logback.error("Proxy finder socket exception", e);
             return null;
         }
     }

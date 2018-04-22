@@ -9,7 +9,7 @@ import lejos.mf.common.UnitMessageType;
 public class BatteryInfo implements ISensor<String> {
     private static final String BATTERY_MESSAGE_SPLIT_CHAR = " ";
     private static final long READ_VALUE_INTERVAL = 10000;
-    private SensorMeasure<String> sensorMeasure = new SensorMeasure<>();
+    private final SensorMeasure<String> sensorMeasure = new SensorMeasure<>();
 
     @Override
     public String get() {

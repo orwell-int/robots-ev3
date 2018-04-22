@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SimpleEscapeKeyListener implements KeyListener {
-    private final static Logger logback = LoggerFactory.getLogger(SimpleEscapeKeyListener.class);
+    private static final Logger logback = LoggerFactory.getLogger(SimpleEscapeKeyListener.class);
 
     private boolean wasKeyPressed = false;
 

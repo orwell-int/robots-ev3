@@ -8,7 +8,7 @@ import orwell.tank.config.RobotIniFile;
 import java.io.IOException;
 
 public class IniFiles {
-    private final static Logger logback = LoggerFactory.getLogger(IniFiles.class);
+    private static final Logger logback = LoggerFactory.getLogger(IniFiles.class);
     private final String robotIniFileName;
     private final String colourConfigIniFileName;
 
@@ -35,7 +35,7 @@ public class IniFiles {
         try {
             return new RobotIniFile(filePath);
         } catch (final IOException e) {
-            logback.error(e.getStackTrace().toString());
+            logback.error("Robot configuration file read exception", e);
             return null;
         }
     }
@@ -44,7 +44,7 @@ public class IniFiles {
         try {
             return new RobotColourConfigIniFile(filePath);
         } catch (final IOException e) {
-            logback.error(e.getStackTrace().toString());
+            logback.error("Colour configuration file read exception", e);
             return null;
         }
     }
@@ -57,7 +57,7 @@ public class IniFiles {
         else if (robotIniFile == null && colourConfigIniFile != null) {
             return "[" + colourConfigIniFileName + "] exists, but [" + robotIniFileName + "] does not exist.";
         }
-        else if (robotIniFile != null && colourConfigIniFile == null) {
+        else if (robotIniFile != null) {
             return "[" + robotIniFileName + "] exists, but [" + colourConfigIniFileName + "] does not exist.";
         }
         else {

@@ -10,12 +10,12 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class Cli {
-    private final static Logger logback = LoggerFactory.getLogger(Cli.class);
+    private static final Logger logback = LoggerFactory.getLogger(Cli.class);
     private static final String COLOUR_INI_FILE_OPTION = "cf";
     private static final String ROBOT_INI_FILE_OPTION = "rf";
     private static final String HELP_OPTION = "h";
     private final Options options = new Options();
-    private String[] args = null;
+    private String[] args;
 
     public Cli(final String[] args) {
         this.args = args;

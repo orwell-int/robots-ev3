@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import static lejos.hardware.Sounds.PIANO;
 
 public class Tune implements IPlayable {
-    private final static Logger logback = LoggerFactory.getLogger(Tune.class);
+    private static final Logger logback = LoggerFactory.getLogger(Tune.class);
 
-    private ArrayList<IPlayable> tune = new ArrayList<>();
+    private final ArrayList<IPlayable> tune = new ArrayList<>();
 
     public static Tune GetVictoryTune(int[] instrument) {
         Tune victoryTune = new Tune();
@@ -79,7 +79,7 @@ public class Tune implements IPlayable {
 
     private class TuneThread implements Runnable {
         private static final int THREAD_SLEEP_BETWEEN_TONES_MS = 1;
-        private ArrayList<IPlayable> tune;
+        private final ArrayList<IPlayable> tune;
 
         private TuneThread(ArrayList<IPlayable> tune) {
             this.tune = tune;
@@ -92,7 +92,7 @@ public class Tune implements IPlayable {
                 try {
                     Thread.sleep(THREAD_SLEEP_BETWEEN_TONES_MS);
                 } catch (InterruptedException e) {
-                    logback.error(e.getStackTrace().toString());
+                    logback.error("Tune thread interrupted", e);
                 }
             }
         }

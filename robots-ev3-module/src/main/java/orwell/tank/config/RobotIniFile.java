@@ -6,16 +6,16 @@ import lejos.hardware.port.SensorPort;
 import org.ini4j.Wini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import orwell.tank.exception.FileBomException;
 import orwell.tank.exception.NotFileException;
 import orwell.tank.exception.ParseIniException;
-import orwell.tank.exception.FileBomException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class RobotIniFile {
-    private final static Logger logback = LoggerFactory.getLogger(RobotIniFile.class);
+    private static final Logger logback = LoggerFactory.getLogger(RobotIniFile.class);
 
     private static final String LEFT_MOTOR_SECTION_NAME = "leftMotor";
     private static final String PORT_OPTION_NAME = "port";
@@ -25,7 +25,7 @@ public class RobotIniFile {
     private static final String INVERTED_OPTION_NAME = "isInverted";
     private static final String PROXY_SECTION_NAME = "proxy";
     private static final String SENSOR_DELAY_OPTION_NAME = "sensorMessageDelayMs";
-    private static final String COLOR_SECTION_NAME = "colorSensor";
+    private static final String COLOUR_SECTION_NAME = "colourSensor";
     private static final String SOUNDS_SECTION_NAME = "sounds";
     private static final String GLOBAL_VOLUME_OPTION_NAME = "globalVolume";
     private static final String ENDGAME_VOLUME_OPTION_NAME = "endgameVolume";
@@ -61,7 +61,7 @@ public class RobotIniFile {
         robotFileBom.setRfidSensorPort(charToPort(getRfidSensorPort()));
         robotFileBom.setUsSensorPort(charToPort(getUsSensorPort()));
         robotFileBom.setSensorMessageDelayMs(getSensorMessageDelay());
-        robotFileBom.setColorSensorPort(charToPort(getColorSensorPort()));
+        robotFileBom.setColourSensorPort(charToPort(getColourSensorPort()));
         robotFileBom.setGlobalVolume(getGlobalVolume());
         robotFileBom.setEndGameVolume(getEndgameVolume());
         robotFileBom.setSoundVictoryFilepath(getVictoryFilepath());
@@ -69,8 +69,6 @@ public class RobotIniFile {
         robotFileBom.setSoundDrawFilepath(getDrawFilepath());
         robotFileBom.setBroadcastPort(getBroadcastPort());
         robotFileBom.setBroadcastTimeout(getBroadcastTimeout());
-        robotFileBom.setStartCameraScriptPath(getStartCameraScriptPath());
-        robotFileBom.setKillCameraScriptPath(getKillCameraScriptPath());
 
         if (!robotFileBom.isModelValid()) {
             throw new FileBomException(robotFileBom);
@@ -140,9 +138,9 @@ public class RobotIniFile {
         }
     }
 
-    private char getColorSensorPort() {
+    private char getColourSensorPort() {
         try {
-            return iniFile.get(COLOR_SECTION_NAME, PORT_OPTION_NAME, char.class);
+            return iniFile.get(COLOUR_SECTION_NAME, PORT_OPTION_NAME, char.class);
         } catch (IllegalArgumentException e) {
             logback.info("ColourSensor Port argument not understood, defaulting to null");
             return 0;
